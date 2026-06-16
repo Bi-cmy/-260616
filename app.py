@@ -3,10 +3,23 @@
 """
 import streamlit as st, pandas as pd, numpy as np, plotly.graph_objects as go
 from pathlib import Path
-import random, time, re
+from dotenv import load_dotenv
+from openai import OpenAI
+import random, time, re, os
 
 st.set_page_config(page_title="你以为的以为",page_icon="🤔",layout="wide",initial_sidebar_state="expanded")
 ROOT=Path(__file__).resolve().parent; ASSETS=ROOT/"assets"; DATA_DIR=ROOT/"data"
+
+# 加载 .env 配置
+load_dotenv(ROOT/".env")
+AI_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+AI_BASE = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+AI_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+
+def get_ai_client():
+    if not AI_KEY or AI_KEY == "your_api_key_here":
+        return None
+    return OpenAI(api_key=AI_KEY, base_url=AI_BASE)
 
 st.markdown("""<style>
 .stApp{background-color:#0E1117}.main .block-container{padding-top:1rem}
@@ -29,6 +42,155 @@ for k,v in {"coins":1000,"achievements":[],"games_completed":{},"game_scores":{}
 
 CHAPTER_COLORS={"chapter1":"#F0B90B","chapter2":"#00B4D8","chapter3":"#E07B39","chapter4":"#9B59B6"}
 GAME_META={1:{"title":"传说之魂","subtitle":"终极召唤","chapter":1,"icon":"🎮"},2:{"title":"密室秘钥","subtitle":"三把锁，一把钥匙","chapter":1,"icon":"🔒"},3:{"title":"撞头像","subtitle":"有多少人跟你撞了？","chapter":1,"icon":"🎨"},4:{"title":"翻倍陷阱","subtitle":"期望为正却注定破产的赌局","chapter":1,"icon":"🪙"},5:{"title":"天才的诅咒","subtitle":"新秀墙还是运气？","chapter":2,"icon":"⚽"},6:{"title":"两个神医","subtitle":"该找谁看病？","chapter":2,"icon":"🏥"},7:{"title":"沉默的大多数","subtitle":"你看到的只是幸存者","chapter":2,"icon":"💸"},8:{"title":"阳性","subtitle":"你应该恐慌吗？","chapter":2,"icon":"🩺"},9:{"title":"离奇档案","subtitle":"当你发现了惊天秘密","chapter":3,"icon":"📁"},10:{"title":"鸡与蛋","subtitle":"谁是因，谁是果？","chapter":3,"icon":"🐔"},11:{"title":"幕后黑手","subtitle":"真凶另有其人","chapter":3,"icon":"🕵️"},12:{"title":"星光错觉","subtitle":"选角的秘密","chapter":3,"icon":"🌟"},13:{"title":"收缩魔法","subtitle":"把无关的东西拉在一起反而更准？","chapter":4,"icon":"🪄"},14:{"title":"空心球","subtitle":"这个世界只有皮","chapter":4,"icon":"🍉"},15:{"title":"无法区分的人","subtitle":"混在一起的两群人","chapter":4,"icon":"👥"}}
+
+# ── AI 系统提示词 ──
+AI_SYSTEM_PROMPTS = {
+    "lobby": """你是一个概率与统计思维训练平台的 AI 导师，名为「以为解药」。你的风格是：生动、有洞见、善于用生活中的类比解释抽象概念。
+
+这个平台包含 15 个互动游戏，分为 4 章：
+1. 赌徒的直觉（游戏1-4）：几何分布/无记忆性、蒙提霍尔问题、生日悖论、非各态历经性
+2. 真相猎人的调查（游戏5-8）：回归均值、辛普森悖论、幸存者偏差、贝叶斯定理/基础率谬误
+3. 因果侦探事务所（游戏9-12）：虚假相关/多重比较、反向因果、混杂变量、对撞偏差
+4. 换个维度看世界（游戏13-15）：詹姆斯-斯坦悖论、高维几何直觉、维度诅咒
+
+请用中文回答，保持回答简洁有力（控制在 300 字以内），用类比帮助理解。当你觉得需要时，可以适当使用 LaTeX 数学公式。""",
+
+    1: """你是「以为解药」，正在为玩家讲解游戏1「传说之魂」——关于几何分布与无记忆性。
+
+核心概念：
+- 每次抽卡是独立的，概率不会"累积"。SSR 出率 1%，期望 100 次，但 P50 约 69 次。
+- 「垫刀」是赌徒谬误——硬币没有记忆。
+- 几何分布的无记忆性：P(X > k+m | X > k) = P(X > m)
+
+请用中文回应玩家的问题，结合抽卡/游戏的类比，帮助建立"独立事件"的直觉。""",
+
+    2: """你是「以为解药」，正在为玩家讲解游戏2「密室秘钥」——蒙提霍尔问题。
+
+核心概念：
+- 三扇门，一扇有钥匙。你选一扇，主持人打开另一扇空门。
+- 换门胜率 2/3，不换 1/3。关键在于主持人的行为携带信息——他永远不会打开有钥匙的门。
+- 这是贝叶斯更新的经典案例。
+
+请用中文回应，用"主持人知道答案"这个关键点帮助玩家理解为什么不是五十五十。""",
+
+    3: """你是「以为解药」，正在为玩家讲解游戏3「撞头像」——生日悖论。
+
+核心概念：
+- 80 个头像，23 人就超过 50% 碰撞概率。
+- 比较的不是某个特定的人跟你相同，而是所有 C(N,2) 对人中任意一对相同。
+- P(碰撞) ≈ 1 - e^(-N(N-1)/160)
+
+请用中文回应，帮助玩家理解"组合爆炸"的力量——配对数量增长远远快于人数增长。""",
+
+    4: """你是「以为解药」，正在为玩家讲解游戏4「翻倍陷阱」——非各态历经性。
+
+核心概念：
+- 每次抛硬币：正面×1.5，反面×0.6。算术期望 +5%，但几何平均 √(1.5×0.6) ≈ 0.949 < 1。
+- 系综平均（平行宇宙的平均）≠ 时间平均（你反复玩的实际路径）。
+- 这就是非各态历经性：期望为正的游戏，反复 All-in 却必然破产。
+
+请用中文回应，用"你只能活一次"这个角度解释为什么期望值不是唯一重要的东西。""",
+
+    5: """你是「以为解药」，正在为玩家讲解游戏5「天才的诅咒」——回归均值。
+
+核心概念：
+- 观测值 = 真实能力 + 随机运气。第一赛季的高分往往是好运气站在了中等能力上。
+- 第二赛季运气重抽，极值自然回弹——这就是回归均值。
+- 这不是"诅咒"，不是"新秀墙"——只是统计规律。
+
+请用中文回应，帮助玩家区分"信号"和"噪声"，理解为什么极端值倾向于向均值回落。""",
+
+    6: """你是「以为解药」，正在为玩家讲解游戏6「两个神医」——辛普森悖论。
+
+核心概念：
+- 华大夫总体治愈率 83%，张大夫 78%。但每种病张大夫都更好。
+- 原因：华大夫收了更多轻症（容易治），张大夫收了更多重症（难治）。病人结构不同导致了总体反转。
+- 分组比较时，分组变量必须在"治疗前"就存在，否则会引入新的偏差。
+
+请用中文回应，帮助玩家建立"看数据先看分层"的思维习惯。""",
+
+    7: """你是「以为解药」，正在为玩家讲解游戏7「沉默的大多数」——幸存者偏差。
+
+核心概念：
+- 你只看到 50 个成功的学员在发声，看不到 9,950 个沉默的失败者。
+- 失败者不会写好评、不会发帖、不会告诉你"我被割了"。
+- 真实成功率 0.5%，但你看到的好评率 100%。
+
+请用中文回应，帮玩家养成"每次看到成功案例，先问失败的人在哪"的思维习惯。""",
+
+    8: """你是「以为解药」，正在为玩家讲解游戏8「阳性」——贝叶斯定理与基础率谬误。
+
+核心概念：
+- 检测准确率 99%，但罕见病发病率仅 0.1%。阳性后真正患病的概率只有约 9%。
+- P(患病|阳性) ≠ P(阳性|患病)。99% 准确率说的是后者。
+- 贝叶斯定理：后验概率 = 似然 × 先验 / 证据。先验（基础率）非常重要。
+
+请用中文回应，帮助玩家理解"条件概率的方向不能互换"。""",
+
+    9: """你是「以为解药」，正在为玩家讲解游戏9「离奇档案」——虚假相关与多重比较。
+
+核心概念：
+- 两条曲线高度同步 ≠ 因果关系。常见结构是 X ← Z → Y（第三变量同时驱动两者）。
+- 翻足够多的变量，总能找到"显著"的虚假关联（多重比较 / p-hacking）。
+- 相关是对称的（Corr(X,Y)=Corr(Y,X)），但因果不是。
+
+请用中文回应，帮玩家建立"相关≠因果"的直觉，鼓励他们追问"有没有第三个变量"。""",
+
+    10: """你是「以为解药」，正在为玩家讲解游戏10「鸡与蛋」——反向因果。
+
+核心概念：
+- 戴眼镜的人智商更高 → 不是眼镜让人聪明，而是高智商→更爱学习→更容易近视。
+- 消防员越多损失越大 → 不是消防员导致损失，而是大火→派出更多消防员。
+- 住院越久死亡率越高 → 不是住院害人，而是病情重→住院久→死亡率高。
+
+请用中文回应，帮助玩家养成"看到相关先问因果方向"的习惯，强调时间顺序的重要性。""",
+
+    11: """你是「以为解药」，正在为玩家讲解游戏11「幕后黑手」——遗漏变量/混杂偏差。
+
+核心概念：
+- 咖啡与心脏病相关，但真正驱动两者的是"长期熬夜"。
+- DAG 结构：咖啡(X) ← 长期熬夜(Z) → 心脏病(Y)
+- 如果不控制 Z，X 和 Y 之间的虚假关联会被误认为因果。
+
+请用中文回应，帮助玩家理解"每当你看到两个变量相关，先问有没有第三个变量在背后"。""",
+
+    12: """你是「以为解药」，正在为玩家讲解游戏12「星光错觉」——对撞偏差/选择偏差。
+
+核心概念：
+- 在全体报名者中，颜值和演技完全独立（r≈0）。
+- 但只选"总分够高"的被录取者时，颜值和演技出现虚假负相关。
+- 控制一个对撞变量（是否被录取），在两个独立变量间凭空创造了关联。
+
+请用中文回应，解释"按结果筛选样本会扭曲变量之间的关系"这个反直觉的现象。""",
+
+    13: """你是「以为解药」，正在为玩家讲解游戏13「收缩魔法」——詹姆斯-斯坦悖论。
+
+核心概念：
+- 同时估计多个参数时，把每个参数的估计值都往总体均值"缩"一点，反而整体更准。
+- MLE（直接用样本均值）无偏但方差大；JS 收缩引入一点偏差，但大幅降低方差。
+- MSE = 方差 + 偏差²。当 d≥3 时，JS 的风险严格低于 MLE。
+- 这叫"偏差-方差权衡"——有时候，有偏的估计反而比无偏的好。
+
+请用中文回应，帮助玩家建立"估计不是越'纯粹'越好"的思维。""",
+
+    14: """你是「以为解药」，正在为玩家讲解游戏14「空心球」——高维几何直觉。
+
+核心概念：
+- 高维高斯分布中，几乎所有点都集中在半径 √d 的薄壳上，球内部几乎是空的。
+- 变异系数随维度趋于 0——所有点到原点的距离几乎相同。
+- "西瓜皮现象"：d=1000 时，最外层 1% 半径的皮占总体积的 99.99%+。
+
+请用中文回应，帮助玩家理解"高维空间完全不像低维"，建立对维度诅咒的直觉。""",
+
+    15: """你是「以为解药」，正在为玩家讲解游戏15「无法区分的人」——维度诅咒与线性可分。
+
+核心概念：
+- 在低维（2维）中完全混在一起的两群人，加入足够多随机噪声维度后，变得几乎完美线性可分。
+- Cover 定理：N 个点在 d 维空间中，随机超平面可分的概率随 d 增大。当 d > N 时几乎一定可分。
+- 这就是"维度祝福"的另一面——高维既可以让距离失效，也可以让分类变得极其容易。
+
+请用中文回应，帮助玩家理解"高维空间的几何直觉完全不同于低维"。"""
+}
 
 PLOTLY_DARK={"plot_bgcolor":"#1A1D24","paper_bgcolor":"#1A1D24","font":{"color":"#E4E6EB"},"xaxis":{"gridcolor":"#2A2D35"},"yaxis":{"gridcolor":"#2A2D35"}}
 
@@ -2106,9 +2268,166 @@ def show_game_15():
         complete_game(15);update_radar("维度直觉",4)
 
 # ═══════════════════════════════════════════════════════════
+# AI 分析讲解
+# ═══════════════════════════════════════════════════════════
+def show_ai_analysis():
+    st.markdown("""<h1 style="font-size:36px;color:#E4E6EB;">🤖 AI 分析讲解</h1><p style="color:#8B8F98;font-size:14px;">选择游戏，配置提示词，自由提问——AI 导师为你深度解析概率与统计概念</p>""", unsafe_allow_html=True)
+    st.markdown("---")
+
+    client = get_ai_client()
+
+    # ── 左侧：游戏选择 + 提示词配置 ──
+    col_cfg, col_chat = st.columns([1, 2])
+
+    with col_cfg:
+        st.subheader("⚙️ 配置")
+
+        # 游戏选择
+        game_options = {"lobby": "🏠 大厅（通用）"}
+        for gid in range(1, 16):
+            m = GAME_META[gid]
+            done = "✅" if str(gid) in st.session_state.games_completed else "⬜"
+            game_options[str(gid)] = f"{done} {m['icon']} 游戏{gid}·{m['title']}"
+
+        selected_game = st.selectbox(
+            "🎮 选择分析的游戏",
+            options=list(game_options.keys()),
+            format_func=lambda x: game_options[x],
+            key="ai_game"
+        )
+
+        if selected_game != st.session_state.get("_ai_current_game"):
+            st.session_state._ai_current_game = selected_game
+            # 切换游戏时不清空历史，但更新系统提示词
+
+        # 系统提示词编辑
+        default_prompt = AI_SYSTEM_PROMPTS.get(
+            selected_game if selected_game == "lobby" else int(selected_game),
+            AI_SYSTEM_PROMPTS["lobby"]
+        )
+        if "_ai_custom_prompt" not in st.session_state:
+            st.session_state._ai_custom_prompt = {}
+
+        # 如果切换了游戏且没有自定义过该游戏的提示词，使用默认
+        gk = selected_game
+        if gk not in st.session_state._ai_custom_prompt:
+            st.session_state._ai_custom_prompt[gk] = default_prompt
+
+        system_prompt = st.text_area(
+            "🔧 系统提示词（可编辑）",
+            value=st.session_state._ai_custom_prompt[gk],
+            height=200,
+            key="ai_sys_prompt",
+            on_change=lambda: st.session_state._ai_custom_prompt.update(
+                {gk: st.session_state.ai_sys_prompt}
+            )
+        )
+        # 同步
+        st.session_state._ai_custom_prompt[gk] = system_prompt
+
+        # 快捷提问
+        st.subheader("⚡ 快捷提问")
+        quick_questions = {
+            "lobby": [
+                "💡 我应该从哪个游戏开始？",
+                "🎯 概率直觉到底是什么？",
+                "📊 4个章节分别训练什么能力？",
+            ],
+            "1": ["🎮 为什么69次就有50%概率出SSR？", "🧠 「垫刀」为什么是错觉？", "📐 什么是无记忆性？"],
+            "2": ["🚪 为什么换门概率是2/3不是1/2？", "🔑 主持人的行为为什么重要？", "🔄 这和贝叶斯定理什么关系？"],
+            "3": ["🎂 为什么23人就够？", "🔗 组合数C(N,2)是什么意思？", "🏢 这和密码碰撞攻击有什么关系？"],
+            "4": ["💸 为什么期望+5%还会破产？", "📉 几何均值为什么小于1？", "🌌 什么是非各态历经性？"],
+            "5": ["📉 什么是回归均值？", "⚽ 怎么判断是真天才还是运气？", "🎯 如何避免被极端值欺骗？"],
+            "6": ["🏥 辛普森悖论的本质是什么？", "📊 什么时候应该分组看数据？", "⚠️ 分组变量怎么选才合理？"],
+            "7": ["💀 幸存者偏差骗了多少人？", "📭 怎么看到沉默的数据？", "💰 还有哪些常见的幸存者偏差？"],
+            "8": ["🩺 为什么99%准确率≠99%患病？", "🧮 贝叶斯定理怎么算？", "🦠 基础率为什么这么重要？"],
+            "9": ["📁 怎么判断两条曲线是不是巧合？", "🕵️ 数据挖掘偏差怎么避免？", "❌ 相关和因果的本质区别是什么？"],
+            "10": ["🐔 怎么判断因果方向？", "⏱️ 时间顺序为什么是关键？", "🔄 有哪些经典的反向因果案例？"],
+            "11": ["🕵️ 怎么找到遗漏变量？", "📊 DAG图怎么画？", "☕ 还有哪些遗漏变量的经典例子？"],
+            "12": ["🌟 对撞偏差是什么意思？", "📉 为什么筛选后会出伪相关？", "🎬 生活中还有哪些对撞偏差？"],
+            "13": ["🪄 为什么收缩反而更准？", "📐 偏差-方差权衡是什么？", "📈 d≥3这个界限为什么重要？"],
+            "14": ["🍉 高维球为什么是空的？", "🌌 维度诅咒还有哪些表现？", "📏 为什么高维里所有距离都相等？"],
+            "15": ["👥 为什么垃圾特征能分开人群？", "📐 Cover定理是什么？", "🤖 这和机器学习有什么关系？"],
+        }
+        qs = quick_questions.get(selected_game, quick_questions["lobby"])
+        for q in qs:
+            if st.button(q, key=f"ai_qq_{q[:20]}", use_container_width=True):
+                st.session_state._ai_pending_question = q
+                st.rerun()
+
+    # ── 右侧：聊天区 ──
+    with col_chat:
+        st.subheader("💬 对话")
+
+        if not client:
+            st.warning("⚠️ 请先在 `.env` 文件中配置 `DEEPSEEK_API_KEY`，然后重启应用。")
+            st.code("DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx\nDEEPSEEK_BASE_URL=https://api.deepseek.com", language="bash")
+        else:
+            # 初始化聊天历史
+            if "_ai_messages" not in st.session_state:
+                gid = selected_game if selected_game == "lobby" else int(selected_game)
+                meta = GAME_META.get(gid, {"title": "大厅", "icon": "🏠"})
+                welcome_msg = f"你好！我是 **AI 概率导师「以为解药」** 🧪\n\n当前分析目标：**{meta.get('icon','🏠')} {meta.get('title','大厅')}**\n\n你可以自由提问关于概率、统计、因果推断的任何问题。我会用生动的类比和严谨的数学帮助你建立直觉。\n\n试试下方的快捷提问，或者直接输入你的问题 👇"
+                st.session_state._ai_messages = [{"role": "assistant", "content": welcome_msg}]
+
+            # 渲染历史消息
+            for msg in st.session_state._ai_messages:
+                with st.chat_message(msg["role"]):
+                    st.markdown(msg["content"])
+
+            # 处理快捷提问
+            if "_ai_pending_question" in st.session_state and st.session_state._ai_pending_question:
+                prompt = st.session_state._ai_pending_question
+                st.session_state._ai_pending_question = None
+            else:
+                prompt = st.chat_input("输入你的问题…", key="ai_chat_input")
+
+            if prompt:
+                # 添加用户消息
+                st.session_state._ai_messages.append({"role": "user", "content": prompt})
+
+                # 构建消息列表
+                gk = st.session_state._ai_current_game
+                sys_prompt = st.session_state._ai_custom_prompt.get(gk, AI_SYSTEM_PROMPTS.get("lobby", ""))
+
+                messages = [{"role": "system", "content": sys_prompt}]
+                messages.extend(st.session_state._ai_messages)
+
+                # 调用 API
+                with st.spinner("🤔 以为解药思考中…"):
+                    try:
+                        response = client.chat.completions.create(
+                            model=AI_MODEL,
+                            messages=messages,
+                            temperature=0.7,
+                            max_tokens=1024,
+                        )
+                        reply = response.choices[0].message.content
+                        st.session_state._ai_messages.append({"role": "assistant", "content": reply})
+                    except Exception as e:
+                        st.error(f"❌ API 调用失败：{str(e)}")
+                st.rerun()
+
+            # 操作按钮
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("🗑️ 清空对话", use_container_width=True):
+                    st.session_state._ai_messages = []
+                    st.rerun()
+            with c2:
+                if st.button("🔄 重置提示词", use_container_width=True):
+                    gk = st.session_state._ai_current_game
+                    default = AI_SYSTEM_PROMPTS.get(
+                        gk if gk == "lobby" else int(gk),
+                        AI_SYSTEM_PROMPTS["lobby"]
+                    )
+                    st.session_state._ai_custom_prompt[gk] = default
+                    st.rerun()
+
+# ═══════════════════════════════════════════════════════════
 # MAIN + ROUTER
 # ═══════════════════════════════════════════════════════════
-GAME_ROUTER={"lobby":show_lobby,"1":show_game_01,"2":show_game_02,"3":show_game_03,"4":show_game_04,"5":show_game_05,"6":show_game_06,"7":show_game_07,"8":show_game_08,"9":show_game_09,"10":show_game_10,"11":show_game_11,"12":show_game_12,"13":show_game_13,"14":show_game_14,"15":show_game_15}
+GAME_ROUTER={"lobby":show_lobby,"1":show_game_01,"2":show_game_02,"3":show_game_03,"4":show_game_04,"5":show_game_05,"6":show_game_06,"7":show_game_07,"8":show_game_08,"9":show_game_09,"10":show_game_10,"11":show_game_11,"12":show_game_12,"13":show_game_13,"14":show_game_14,"15":show_game_15,"ai":show_ai_analysis}
 
 def main():
     with st.sidebar:
@@ -2126,9 +2445,13 @@ def main():
                     meta=GAME_META[g]
                     if st.button(f"{prefix} {meta['icon']} {meta['title']}",key=f"nav_{g}",use_container_width=True): st.session_state.current_game=str(g);st.rerun()
         st.markdown("---")
-        st.subheader("🤖 AI 解说")
-        st.text_input("API Key",type="password",key="ai_api_key",placeholder="DeepSeek/OpenAI Key")
-        st.text_input("API Base URL",value="https://api.deepseek.com",key="ai_base_url")
+        st.subheader("🤖 AI 分析讲解")
+        if st.button("🧪 进入 AI 分析", use_container_width=True, type="primary" if st.session_state.get("current_game") == "ai" else "secondary"):
+            st.session_state.current_game = "ai"
+            # 清除 AI 对话历史以刷新
+            if "_ai_messages" in st.session_state:
+                del st.session_state._ai_messages
+            st.rerun()
         st.markdown("---");st.caption("《程序设计与科学计算》期末")
     cur=st.session_state.get("current_game","lobby")
     if cur in GAME_ROUTER: GAME_ROUTER[cur]()
