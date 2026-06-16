@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你以为的以为 — 概率直觉训练营</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]}};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0E1117;color:#E4E6EB;display:flex;min-height:100vh}
+#sidebar{width:260px;background:#111419;border-right:1px solid #2A2D35;padding:20px 16px;display:flex;flex-direction:column;gap:12px;flex-shrink:0;overflow-y:auto;max-height:100vh}
+#sidebar h2{text-align:center;font-size:20px;color:#E4E6EB}
+#sidebar h2 span{color:#F0B90B}
+#sidebar .subtitle{text-align:center;color:#8B8F98;font-size:12px}
+#sidebar hr{border-color:#2A2D35;margin:8px 0}
+#sidebar .stat-row{display:flex;gap:8px}
+#sidebar .stat-row>div{flex:1;text-align:center;background:#1A1D24;border-radius:8px;padding:8px 4px}
+#sidebar .stat-row .val{font-size:18px;font-weight:800}
+#sidebar .stat-row .lbl{font-size:10px;color:#8B8F98}
+#main{flex:1;padding:24px 32px;overflow-y:auto;max-height:100vh}
+.sidebar-btn{display:block;width:100%;padding:8px 12px;border:none;border-radius:6px;background:#1A1D24;color:#E4E6EB;cursor:pointer;text-align:left;font-size:13px;margin:2px 0;transition:all .2s}
+.sidebar-btn:hover{background:#2A2D35}
+.sidebar-btn.active{background:#F0B90B20;border-left:3px solid #F0B90B}
+.chapter-exp{border:none;background:none;color:#E4E6EB;cursor:pointer;text-align:left;width:100%;padding:6px 8px;font-size:13px;border-radius:4px}
+.chapter-exp:hover{background:#1A1D24}
+.chapter-games{display:none;padding-left:16px}
+.chapter-games.open{display:block}
+.game-card{background:linear-gradient(135deg,#1A1D24,#1a1a10);border:1px solid #2A2D35;border-radius:16px;padding:28px;margin-bottom:20px}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;transition:all .2s}
+.btn:hover{filter:brightness(1.2)}
+.btn-primary{background:#F0B90B;color:#0E1117}
+.btn-secondary{background:#1A1D24;color:#E4E6EB;border:1px solid #2A2D35}
+.btn-full{width:100%}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:4px 12px;border-radius:12px;font-size:12px;display:inline-block}
+.metric-card{background:#1A1D24;border:1px solid #2A2D35;border-radius:10px;padding:16px;text-align:center}
+.metric-val{font-size:32px;font-weight:800}
+.metric-lbl{font-size:11px;color:#8B8F98}
+.reveal-box{border-top:1px solid #2A2D35;padding-top:16px;margin-top:16px}
+.reveal-box h3{color:#F0B90B;margin-bottom:12px}
+.reveal-box .metaphor{background:#1A1D24;border-radius:8px;padding:16px;margin-top:16px;font-style:italic;color:#8B8F98}
+.gacha-card{display:inline-block;width:42px;height:56px;border-radius:6px;margin:2px;text-align:center;line-height:56px;font-weight:700;font-size:14px;transition:all .3s}
+.gacha-SSR{background:linear-gradient(135deg,#F0B90B,#FFD700);color:#0E1117;box-shadow:0 0 16px rgba(240,185,11,.6)}
+.gacha-SR{background:linear-gradient(135deg,#7B2D8E,#9B59B6);color:#fff;box-shadow:0 0 8px rgba(155,89,182,.4)}
+.gacha-R{background:linear-gradient(135deg,#2A4A7F,#4A90D9);color:#fff}
+.avatar-icon{display:inline-block;width:38px;height:38px;border-radius:50%;background:#1A1D24;text-align:center;line-height:38px;font-size:20px;margin:3px;transition:all .3s;border:1px solid #2A2D35}
+.avatar-icon.collision{border-color:#F0B90B;box-shadow:0 0 12px rgba(240,185,11,.6);animation:collisionPulse .4s ease-in-out 3}
+@keyframes collisionPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+@keyframes ssrPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15);box-shadow:0 0 24px rgba(240,185,11,.9)}}
+.chapter-banner{background:linear-gradient(90deg,var(--ch-color)18 0%,var(--ch-color)08 50%,transparent 100%);border-left:3px solid var(--ch-color);padding:12px 20px;border-radius:0 8px 8px 0;margin-bottom:20px;display:flex;align-items:center;gap:12px}
+.top-nav{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.top-nav .game-info{flex:1;font-size:13px;color:#8B8F98}
+.progress-bar{background:#2A2D35;border-radius:8px;height:8px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;border-radius:8px;transition:width .3s}
+input[type=text],input[type=password],input[type=number]{background:#1A1D24;border:1px solid #2A2D35;border-radius:6px;padding:8px 12px;color:#E4E6EB;font-size:14px;width:100%}
+input[type=range]{width:100%}
+select{background:#1A1D24;border:1px solid #2A2D35;border-radius:6px;padding:8px 12px;color:#E4E6EB;font-size:14px}
+table{width:100%;border-collapse:collapse;margin:12px 0}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #2A2D35}
+th{color:#8B8F98;font-size:12px;font-weight:600}
+.warn{color:#FF4757}
+.success{color:#00D4AA}
+.info{color:#F0B90B}
+.balloons{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999}
+.balloon{position:absolute;font-size:30px;animation:floatUp 3s ease-in forwards}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(-100vh) rotate(360deg)}}
+.plot-container{width:100%}
+</style>
+</head>
+<body>
+
+<div id="sidebar"></div>
+<div id="main"></div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE MANAGEMENT
+// ═══════════════════════════════════════
+const DEFAULT_STATE = {
+  coins: 1000, achievements: [], games_completed: {},
+  radar_scores: {"独立直觉":0,"条件思维":0,"样本警觉":0,"大数感觉":0,"混淆嗅觉":0,"贝叶斯脑":0,"因果链条":0,"估计智慧":0,"维度直觉":0},
+  history: [], current_game: 'lobby', game_scores: {}
+};
+
+let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('yiweizhiyi_state');
+    if (saved) { const p = JSON.parse(saved); Object.assign(S, p); }
+  } catch(e) {}
+}
+function saveState() { localStorage.setItem('yiweizhiyi_state', JSON.stringify(S)); }
+function addCoins(n) { S.coins += n; saveState(); }
+function completeGame(gid, score=1) { S.games_completed[String(gid)] = true; saveState(); }
+function updateRadar(dim, score) { S.radar_scores[dim] = Math.max(S.radar_scores[dim]||0, score); saveState(); }
+function checkAchievement(a) { if (!S.achievements.includes(a)) { S.achievements.push(a); saveState(); return true; } return false; }
+function resetGameState(prefix) {
+  for (const k of Object.keys(S)) { if (k.startsWith(prefix)) delete S[k]; }
+  saveState();
+}
+
+loadState();
+
+// ═══════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════
+const CHAPTER_COLORS = {chapter1:'#F0B90B',chapter2:'#00B4D8',chapter3:'#E07B39',chapter4:'#9B59B6'};
+const CH_NAMES = ['','赌徒的直觉','真相猎人的调查','因果侦探事务所','换个维度看世界'];
+const CH_ICONS = ['','🏕️','🏥','🔎','🌌'];
+const GAME_META = {
+  1:{title:'传说之魂',subtitle:'终极召唤',chapter:1,icon:'🎮'},
+  2:{title:'密室秘钥',subtitle:'三把锁，一把钥匙',chapter:1,icon:'🔒'},
+  3:{title:'撞头像',subtitle:'有多少人跟你撞了？',chapter:1,icon:'🎨'},
+  4:{title:'翻倍陷阱',subtitle:'期望为正却注定破产的赌局',chapter:1,icon:'🪙'},
+  5:{title:'天才的诅咒',subtitle:'新秀墙还是运气？',chapter:2,icon:'⚽'},
+  6:{title:'两个神医',subtitle:'该找谁看病？',chapter:2,icon:'🏥'},
+  7:{title:'沉默的大多数',subtitle:'你看到的只是幸存者',chapter:2,icon:'💸'},
+  8:{title:'阳性',subtitle:'你应该恐慌吗？',chapter:2,icon:'🩺'},
+  9:{title:'离奇档案',subtitle:'当你发现了惊天秘密',chapter:3,icon:'📁'},
+  10:{title:'鸡与蛋',subtitle:'谁是因，谁是果？',chapter:3,icon:'🐔'},
+  11:{title:'幕后黑手',subtitle:'真凶另有其人',chapter:3,icon:'🕵️'},
+  12:{title:'星光错觉',subtitle:'选角的秘密',chapter:3,icon:'🌟'},
+  13:{title:'收缩魔法',subtitle:'把无关的东西拉在一起反而更准？',chapter:4,icon:'🪄'},
+  14:{title:'空心球',subtitle:'这个世界只有皮',chapter:4,icon:'🍉'},
+  15:{title:'无法区分的人',subtitle:'混在一起的两群人',chapter:4,icon:'👥'}
+};
+const PLOTLY_DARK = {
+  plot_bgcolor:'#1A1D24', paper_bgcolor:'#1A1D24',
+  font:{color:'#E4E6EB'},
+  xaxis:{gridcolor:'#2A2D35'}, yaxis:{gridcolor:'#2A2D35'},
+  margin:{l:40,r:20,t:40,b:40}
+};
+
+// ═══════════════════════════════════════
+// RENDER HELPERS
+// ═══════════════════════════════════════
+function renderSidebar() {
+  const chGames = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15]];
+  const chLabels = ['🏕️ 第一章','🏥 第二章','🔎 第三章','🌌 第四章'];
+  let html = `<h2>你<span>以为</span>的以为</h2><p class="subtitle">概率直觉训练营</p><hr>
+    <div class="stat-row"><div><div class="val" style="color:#F0B90B">${S.coins}</div><div class="lbl">💰 金币</div></div><div><div class="val" style="color:#00D4AA">${S.achievements.length}/16</div><div class="lbl">🏆 成就</div></div></div><hr>
+    <button class="sidebar-btn${S.current_game==='lobby'?' active':''}" onclick="navTo('lobby')">🏠 大厅</button>`;
+  for (let i = 0; i < chLabels.length; i++) {
+    const chKey = `chapter${i+1}`;
+    const games = chGames[i];
+    const done = games.filter(g => S.games_completed[String(g)]).length;
+    html += `<button class="chapter-exp" onclick="this.nextElementSibling.classList.toggle('open')">${chLabels[i]} <span style="color:#8B8F98;font-size:11px">${done}/${games.length}</span></button><div class="chapter-games${games.some(g=>String(g)===S.current_game)?' open':''}">`;
+    for (const g of games) {
+      const meta = GAME_META[g];
+      const doneIcon = S.games_completed[String(g)] ? '✅' : '⬜';
+      html += `<button class="sidebar-btn${String(g)===S.current_game?' active':''}" onclick="navTo('${g}')">${doneIcon} ${meta.icon} ${meta.title}</button>`;
+    }
+    html += '</div>';
+  }
+  html += '<hr><p style="font-size:10px;color:#8B8F98;text-align:center">《程序设计与科学计算》期末</p>';
+  document.getElementById('sidebar').innerHTML = html;
+}
+
+function navTo(gameId) {
+  // Clear game-specific state keys from S (but keep persistent ones)
+  const persistentKeys = ['coins','achievements','games_completed','radar_scores','history','current_game','game_scores'];
+  const toDelete = [];
+  for (const k of Object.keys(S)) {
+    if (!persistentKeys.includes(k)) toDelete.push(k);
+  }
+  for (const k of toDelete) delete S[k];
+  S.current_game = String(gameId);
+  saveState();
+  renderAll();
+}
+
+function chapterBanner(gid) {
+  const meta = GAME_META[gid];
+  const ch = meta.chapter;
+  const color = Object.values(CHAPTER_COLORS)[ch-1];
+  return `<div class="chapter-banner" style="--ch-color:${color}"><span style="font-size:24px">${CH_ICONS[ch]}</span><div><span style="color:${color};font-weight:700;font-size:14px">第${ch}章·${CH_NAMES[ch]}</span><span style="color:#8B8F98;font-size:14px;margin-left:8px">${meta.icon} 游戏${gid}/15·${meta.title}</span></div><div style="flex:1"></div><span style="color:#8B8F98;font-size:12px">${meta.subtitle}</span></div>`;
+}
+
+function topNav(gid) {
+  const meta = GAME_META[gid];
+  const ch = meta.chapter;
+  const color = Object.values(CHAPTER_COLORS)[ch-1];
+  return `<div class="top-nav"><button class="btn btn-sm btn-secondary" onclick="navTo('lobby')">☰ 大厅</button><div class="game-info"><span style="color:${color};font-weight:600">第${ch}章·${CH_NAMES[ch]}</span> | ${meta.icon} 游戏${gid}/15·${meta.title}</div><button class="btn btn-sm btn-secondary" onclick="navTo('${Math.max(1,gid-1)}')">◀</button><button class="btn btn-sm btn-secondary" onclick="navTo('${Math.min(15,gid+1)}')">▶</button></div>`;
+}
+
+function revealBox(title, content, metaphor) {
+  return `<div class="reveal-box"><h3>🔍 ${title}</h3><p style="font-size:16px;line-height:1.8;color:#E4E6EB">${content}</p><div class="metaphor"><span style="color:#8B8F98">🎭 </span>${metaphor}</div></div>`;
+}
+
+function mathDetail(formula) {
+  return `<details style="margin-top:12px"><summary style="cursor:pointer;color:#F0B90B">📐 数学细节</summary><div style="padding:12px;background:#1A1D24;border-radius:8px;margin-top:8px">${formula}</div></details>`;
+}
+
+function showBalloons() {
+  const emojis = ['🎈','🎉','🎊','✨','🌟','💫'];
+  let html = '<div class="balloons">';
+  for (let i = 0; i < 20; i++) {
+    const left = Math.random() * 90 + 5;
+    const delay = Math.random() * 1.5;
+    html += `<span class="balloon" style="left:${left}%;animation-delay:${delay}s">${emojis[Math.floor(Math.random()*emojis.length)]}</span>`;
+  }
+  html += '</div>';
+  document.getElementById('main').insertAdjacentHTML('beforeend', html);
+  setTimeout(() => { const b = document.querySelector('.balloons'); if (b) b.remove(); }, 3500);
+}
+
+function radarChart() {
+  const scores = S.radar_scores;
+  const dims = Object.keys(scores);
+  const vals = Object.values(scores);
+  const trace = {
+    type: 'scatterpolar', r: [...vals, vals[0]], theta: [...dims, dims[0]],
+    fill: 'toself', fillcolor: 'rgba(240,185,11,0.2)',
+    line: {color:'#F0B90B',width:2}
+  };
+  const layout = {
+    polar: {
+      radialaxis: {range:[0,5], gridcolor:'#2A2D35', color:'#8B8F98'},
+      angularaxis: {gridcolor:'#2A2D35', color:'#E4E6EB'},
+      bgcolor:'#1A1D24'
+    },
+    ...PLOTLY_DARK, height:380
+  };
+  Plotly.newPlot('radar-plot', [trace], layout, {displayModeBar: false});
+}
+
+function plotlyChart(divId, data, layout) {
+  Plotly.newPlot(divId, data, {...PLOTLY_DARK, ...layout}, {displayModeBar: false});
+}
+
+// Simple normal RNG using Box-Muller
+function randn(mean=0, std=1) {
+  let u1=Math.random(), u2=Math.random();
+  while(u1===0) u1=Math.random();
+  return mean + std * Math.sqrt(-2*Math.log(u1)) * Math.cos(2*Math.PI*u2);
+}
+function randint(n) { return Math.floor(Math.random()*n); }
+
+// Simple logistic regression scores (approximation for game 15)
+function simpleClassify(X, y) {
+  const n = X.length, d = X[0].length;
+  const means = [[],[]];
+  for (let c=0;c<2;c++) {
+    for (let j=0;j<d;j++) {
+      let sum=0, cnt=0;
+      for (let i=0;i<n;i++) if(y[i]===c) { sum+=X[i][j]; cnt++; }
+      means[c][j] = cnt>0 ? sum/cnt : 0;
+    }
+  }
+  let correct=0;
+  for (let i=0;i<n;i++) {
+    let d0=0, d1=0;
+    for (let j=0;j<d;j++) { d0+=(X[i][j]-means[0][j])**2; d1+=(X[i][j]-means[1][j])**2; }
+    if ((d0<d1?0:1)===y[i]) correct++;
+  }
+  return correct/n*100;
+}
+
+// ═══════════════════════════════════════
+// RENDER MAIN
+// ═══════════════════════════════════════
+function renderMain() {
+  const main = document.getElementById('main');
+  const cur = S.current_game;
+  renderSidebar();
+  if (cur === 'lobby') renderLobby();
+  else if (GAME_RENDERERS[cur]) GAME_RENDERERS[cur]();
+  else renderLobby();
+  // Re-render MathJax
+  if (window.MathJax) MathJax.typesetPromise();
+}
+
+// ═══════════════════════════════════════
+// LOBBY
+// ═══════════════════════════════════════
+function renderLobby() {
+  let html = '<h1 style="font-size:42px;margin-bottom:0;color:#E4E6EB">你<span style="color:#F0B90B">以为</span>的以为</h1><p style="color:#8B8F98;font-size:16px">训练你的概率直觉，识破统计陷阱，破解因果迷思</p><hr>';
+  const nDone = Object.keys(S.games_completed).length;
+  html += `<div style="display:flex;gap:16px;margin:16px 0"><div class="metric-card" style="flex:1"><div class="metric-val" style="color:#F0B90B">${S.coins}</div><div class="metric-lbl">💰 金币</div></div><div class="metric-card" style="flex:1"><div class="metric-val" style="color:#00B4D8">${S.achievements.length}/16</div><div class="metric-lbl">🏆 成就</div></div><div class="metric-card" style="flex:1"><div class="metric-val" style="color:#E07B39">${nDone}/15</div><div class="metric-lbl">🎮 已完成</div></div></div><hr>`;
+
+  html += '<div style="display:flex;gap:24px"><div style="flex:1"><h3>🎯 直觉雷达</h3><div id="radar-plot"></div></div><div style="flex:1"><h3>📖 章节选择</h3>';
+
+  const chapters = [
+    ['🏕️','第一章·赌徒的直觉','4个游戏','#F0B90B',[1,2,3,4]],
+    ['🏥','第二章·真相猎人的调查','4个游戏','#00B4D8',[5,6,7,8]],
+    ['🔎','第三章·因果侦探事务所','4个游戏','#E07B39',[9,10,11,12]],
+    ['🌌','第四章·换个维度看世界','3个游戏','#9B59B6',[13,14,15]]
+  ];
+  for (const [icon,name,count,color,games] of chapters) {
+    const done = games.filter(g => S.games_completed[String(g)]).length;
+    const nextG = games.find(g => !S.games_completed[String(g)]) || games[0];
+    html += `<div style="background:#1A1D24;border:1px solid #2A2D35;border-radius:10px;padding:14px;margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:20px">${icon}</span><div style="flex:1"><span style="color:#E4E6EB;font-weight:600">${name}</span><span style="color:#8B8F98;font-size:12px;margin-left:8px">${done}/${games.length} 完成</span></div></div><div class="progress-bar"><div class="progress-fill" style="width:${done/games.length*100}%;background:${color}"></div></div><button class="btn btn-primary btn-full" onclick="navTo('${nextG}')">▶ 进入</button></div>`;
+  }
+  html += '</div></div>';
+  document.getElementById('main').innerHTML = html;
+  setTimeout(radarChart, 100);
+}
+
+// ═══════════════════════════════════════
+// GAME 1: 传说之魂
+// ═══════════════════════════════════════
+function renderGame01() {
+  if (S.g01_pulls === undefined) { S.g01_pulls=0; S.g01_ssr_at=null; S.g01_history=[]; S.g01_revealed=false; saveState(); }
+  const ssrRate=0.01;
+  let html = topNav(1) + chapterBanner(1);
+  html += `<div class="game-card"><div style="display:flex;gap:20px"><span style="font-size:48px">🎮</span><div><h3 style="color:#F0B90B">传说之魂 —— 终极召唤</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">你心心念念那个 <b style="color:#F0B90B">SSR 传说角色</b>，出率 <b>1%</b>。<br>💬 <i>"垫了这么多刀，差不多该出了吧？"</i><br>——真的吗？</p></div></div></div>`;
+
+  html += '<h3>🎯 召唤阵</h3><div style="display:flex;gap:16px"><div style="flex:1"><div class="btn-group">';
+  for (const [label,n] of [['1连抽',1],['10连抽 🔥',10],['50连抽',50],['100连抽',100]]) {
+    html += `<button class="btn btn-primary" onclick="game01pull(${n})">🔮 ${label}</button>`;
+  }
+  html += `</div></div><div class="metric-card" style="flex:0.5"><div>📦 已抽次数</div><div class="metric-val">${S.g01_pulls}</div>${S.g01_ssr_at?`<div>⭐ SSR第${S.g01_ssr_at}次出</div>`:''}</div></div>`;
+
+  if (S.g01_history.length > 0) {
+    html += '<h4>🃏 抽卡记录</h4>';
+    const showN = Math.min(30, S.g01_history.length);
+    const recent = S.g01_history.slice(-showN);
+    html += '<div style="line-height:1">';
+    for (const r of recent) {
+      const symbol = r==='SSR'?'★':r==='SR'?'◆':'●';
+      html += `<span class="gacha-card gacha-${r}">${symbol}</span>`;
+    }
+    html += '</div>';
+    const cntSSR = S.g01_history.filter(x=>x==='SSR').length;
+    const cntSR = S.g01_history.filter(x=>x==='SR').length;
+    const cntR = S.g01_history.filter(x=>x==='R').length;
+    html += `<p><span style="color:#F0B90B">★ SSR×${cntSSR}</span> <span style="color:#9B59B6">◆ SR×${cntSR}</span> <span style="color:#4A90D9">● R×${cntR}</span> <span style="color:#8B8F98">| 总计${S.g01_pulls}抽</span></p>`;
+  }
+
+  if (S.g01_ssr_at) {
+    html += '<hr><h4>📊 运气排第几？</h4><div id="g01-chart"></div>';
+    const pct = Math.round((1-Math.pow(1-ssrRate,S.g01_ssr_at))*100);
+    html += `<div style="text-align:center;font-size:48px;font-weight:800;color:#F0B90B">${pct}<span style="font-size:16px;color:#8B8F98"> 百分位</span></div>`;
+
+    if (!S.g01_revealed) {
+      html += '<h4>🤔 朋友说"快了快了，概率会累积的"——对吗？</h4><div class="btn-group"><button class="btn btn-primary" onclick="game01reveal(\'y\')">✅ 对</button><button class="btn btn-secondary" onclick="game01reveal(\'n\')">❌ 不对</button></div>';
+    }
+
+    if (S.g01_revealed) {
+      const p50 = Math.ceil(Math.log(0.5)/Math.log(1-ssrRate));
+      const p90 = Math.ceil(Math.log(0.1)/Math.log(1-ssrRate));
+      html += revealBox('每一次抽卡都是独立的——「垫刀」只是幻觉',`你抽了 <b>${S.g01_ssr_at}</b> 次，排在第 <b>${pct}</b> 百分位。几何分布的尾巴就是这么长。<br>P50=${p50}次，P90=${p90}次。<b>1% 概率 ≠ 100 次必出。</b>`,'"垫刀"是游戏公司写在你脑子里的代码。每次抽卡都是全新的——硬币没有记忆。');
+      html += mathDetail('**几何分布** $$P(X=k)=(1-p)^{k-1}p$$ **累积概率** $$P(X\\le k)=1-(1-p)^k$$ **期望** $$E[X]=1/p=100$$ **P50** $$\\approx 69$$ **无记忆性** $$P(X>k+m\\mid X>k)=P(X>m)$$');
+      html += '<br><button class="btn btn-primary btn-full" onclick="game01reset()">🔄 重启</button>';
+      completeGame(1); updateRadar('独立直觉',3);
+    }
+  }
+
+  document.getElementById('main').innerHTML = html;
+  saveState();
+  if (S.g01_ssr_at) setTimeout(() => game01chart(), 100);
+}
+
+function game01pull(n) {
+  if (S.g01_revealed) return;
+  const ssrRate=0.01;
+  for (let i=0;i<n;i++) {
+    S.g01_pulls++;
+    const roll=Math.random();
+    if (roll<ssrRate) { S.g01_history.push('SSR'); if (S.g01_ssr_at===null) S.g01_ssr_at=S.g01_pulls; }
+    else if (roll<0.10) S.g01_history.push('SR');
+    else S.g01_history.push('R');
+  }
+  saveState(); renderAll();
+}
+function game01reveal(choice) { S.g01_revealed=true; saveState(); renderAll(); }
+function game01reset() { delete S.g01_pulls; delete S.g01_ssr_at; delete S.g01_history; delete S.g01_revealed; saveState(); renderAll(); }
+function game01chart() {
+  const ssrRate=0.01, p50=Math.ceil(Math.log(0.5)/Math.log(1-ssrRate)), p90=Math.ceil(Math.log(0.1)/Math.log(1-ssrRate));
+  const x=[], cdf=[];
+  for (let i=1;i<Math.max(S.g01_ssr_at+50,100);i++) { x.push(i); cdf.push(1-Math.pow(1-ssrRate,i)); }
+  const data=[{x,y:cdf,mode:'lines',line:{color:'#F0B90B',width:3},fill:'tozeroy',fillcolor:'rgba(240,185,11,0.08)'}];
+  const layout={...PLOTLY_DARK,height:320,xaxis:{...PLOTLY_DARK.xaxis,title:'抽卡次数'},yaxis:{...PLOTLY_DARK.yaxis,title:'至少出货一次的概率'},shapes:[
+    {type:'line',x0:p50,x1:p50,y0:0,y1:1,line:{dash:'dash',color:'#00D4AA'}},
+    {type:'line',x0:p90,x1:p90,y0:0,y1:1,line:{dash:'dash',color:'#00B4D8'}},
+    {type:'line',x0:S.g01_ssr_at,x1:S.g01_ssr_at,y0:0,y1:1,line:{color:'#FF4757',width:3}}
+  ]};
+  Plotly.newPlot('g01-chart', data, layout, {displayModeBar:false});
+}
+
+// ═══════════════════════════════════════
+// GAME 2: 密室秘钥
+// ═══════════════════════════════════════
+function renderGame02() {
+  if (!S.g02_phase) { S.g02_phase='story'; S.g02_strategy=null; S.g02_results=[]; saveState(); }
+  let html = topNav(2)+chapterBanner(2);
+  html += `<div class="game-card"><div style="display:flex;gap:20px"><span style="font-size:48px">🔒</span><div><h3 style="color:#F0B90B">密室秘钥 —— 三把锁，一把钥匙</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">三个密码锁盒——<b>只有一个藏着大门钥匙</b>。你选了一个。<br>📢 广播：<i>"给你一个提示。"</i> 主持人打开另一个空盒。<br>💬 A："换啊！" 💬 B："别换，五十五十！"</p></div></div></div>`;
+
+  if (S.g02_phase==='story') {
+    html += '<div class="btn-group">';
+    html += '<button class="btn btn-secondary" onclick="game02start(\'stay\')">🚫 打死不换</button>';
+    html += '<button class="btn btn-primary" onclick="game02start(\'switch\')">🔄 每次都换</button>';
+    html += '<button class="btn btn-secondary" onclick="game02manual()">🤔 手动一局</button></div>';
+  } else if (S.g02_phase==='manual_play') {
+    if (!S.g02_mstate) S.g02_mstate='choose';
+    if (S.g02_mstate==='choose') {
+      html += '<h3>🎮 手动模式</h3><div style="display:flex;gap:12px">';
+      for (let i=0;i<3;i++) {
+        html += `<div style="flex:1;text-align:center;background:#1A1D24;border:2px solid #2A2D35;border-radius:16px;padding:24px"><span style="font-size:48px">🔒</span><br><span style="color:#E4E6EB">${i+1}号盒</span><br><button class="btn btn-primary btn-full" onclick="game02pick(${i})">选${i+1}号</button></div>`;
+      }
+      html += '</div>';
+    } else if (S.g02_mstate==='decide') {
+      const ch=S.g02_mchoice, rv=S.g02_mreveal;
+      html += '<div style="display:flex;gap:12px;margin-bottom:12px">';
+      for (let i=0;i<3;i++) {
+        if (i===rv) html += `<div style="flex:1;text-align:center;background:#1a1015;border:2px solid #FF4757;border-radius:16px;padding:24px;opacity:.7"><span style="font-size:48px">📦</span><br><span style="color:#FF4757">空的！</span></div>`;
+        else if (i===ch) html += `<div style="flex:1;text-align:center;background:#1a1a10;border:2px solid #F0B90B;border-radius:16px;padding:24px;box-shadow:0 0 12px rgba(240,185,11,.4)"><span style="font-size:48px">🔒</span><br><span style="color:#F0B90B">👈 你的选择</span></div>`;
+        else html += `<div style="flex:1;text-align:center;background:#1A1D24;border:2px solid #00D4AA;border-radius:16px;padding:24px"><span style="font-size:48px">🔒</span><br><span style="color:#00D4AA">未打开</span></div>`;
+      }
+      html += '</div><div class="btn-group"><button class="btn btn-primary" onclick="game02decide(true)">🔄 换！</button><button class="btn btn-secondary" onclick="game02decide(false)">🚫 不换</button></div>';
+    } else if (S.g02_mstate==='result') {
+      const car=S.g02_mcar;
+      html += '<div style="display:flex;gap:12px;margin-bottom:12px">';
+      for (let i=0;i<3;i++) {
+        if (i===car) html += `<div style="flex:1;text-align:center;background:#0a1a15;border:2px solid #00D4AA;border-radius:16px;padding:24px;box-shadow:0 0 20px rgba(0,212,170,.5)"><span style="font-size:48px">🗝️</span><br><span style="color:#00D4AA">钥匙在这！</span></div>`;
+        else html += `<div style="flex:1;text-align:center;background:#1a1015;border:2px solid #FF4757;border-radius:16px;padding:24px;opacity:.5"><span style="font-size:48px">📦</span><br><span style="color:#FF4757">空的</span></div>`;
+      }
+      html += `</div><p style="font-size:18px"><span style="color:${S.g02_mwin?'#00D4AA':'#FF4757'}">${S.g02_mwin?'✅ 逃出去了！':'❌ 困住了…'}</span></p>`;
+      html += '<button class="btn btn-primary btn-full" onclick="game02start(\'switch\')">▶ 用策略模拟50局</button>';
+    }
+  } else if (S.g02_phase==='auto_sim') {
+    const strategy = S.g02_strategy;
+    html += `<h3>📊 策略：${strategy==='stay'?'🚫 打死不换':'🔄 每次都换'}</h3>`;
+    html += '<button class="btn btn-primary btn-full" onclick="game02sim()">▶ 开始模拟50局！</button>';
+  } else if (S.g02_phase==='reveal') {
+    const results=S.g02_results, wins=results.filter(x=>x).length, rate=wins/results.length*100;
+    const strategy=S.g02_strategy;
+    html += `<h3>📊 ${wins}/${results.length} 逃脱 → ${rate.toFixed(1)}%</h3><div id="g02-chart"></div>`;
+    html += revealBox('两选一不是五十五十——主持人知道答案',`你的逃脱率：<b>${rate.toFixed(1)}%</b>。<br>主持人<b>不是随机开盒</b>——他知道钥匙在哪。<br>初选正确概率=1/3。换盒=2/3。<b>差一倍。</b>`,'帮你排除错误选项的人，才是关键。生活中换赛道——重点不是"换"，而是有没有人给了你新信息。');
+    html += mathDetail('**贝叶斯推导** $$P(C=K)=\\frac{1}{3}$$ 主持人永远不开有钥匙的盒子 → $$P(\\text{换盒赢})=\\frac{2}{3}$$');
+    html += '<button class="btn btn-secondary btn-full" onclick="game02retry()">🔄 换个策略</button>';
+    completeGame(2); if(strategy==='switch'&&rate>60) updateRadar('条件思维',4); else updateRadar('条件思维',2);
+    setTimeout(game02chart,100);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game02start(s) { S.g02_strategy=s; S.g02_phase='auto_sim'; saveState(); renderAll(); }
+function game02manual() { S.g02_phase='manual_play'; saveState(); renderAll(); }
+function game02pick(i) { S.g02_mchoice=i; S.g02_mcar=randint(3); const avail=[0,1,2].filter(j=>j!==i&&j!==S.g02_mcar); S.g02_mreveal=avail[randint(avail.length)]; S.g02_mstate='decide'; saveState(); renderAll(); }
+function game02decide(sw) { const ch=S.g02_mchoice, rv=S.g02_mreveal; const final = sw ? [0,1,2].find(j=>j!==ch&&j!==rv) : ch; S.g02_mwin = (final===S.g02_mcar); S.g02_mstate='result'; saveState(); renderAll(); }
+function game02sim() { const results=[], strategy=S.g02_strategy; for(let i=0;i<50;i++){const key=randint(3),pick=randint(3);const avail=[0,1,2].filter(j=>j!==pick&&j!==key);const host=avail[randint(avail.length)];const final=strategy==='switch'?[0,1,2].find(j=>j!==pick&&j!==host):pick;results.push(final===key);} S.g02_results=results; S.g02_phase='reveal'; saveState(); renderAll(); }
+function game02retry() { S.g02_phase='story'; S.g02_strategy=null; S.g02_results=[]; saveState(); renderAll(); }
+function game02chart() { const results=S.g02_results; const cum=[]; let s=0; for(let i=0;i<results.length;i++){if(results[i])s++;cum.push(s/(i+1)*100);} const data=[{y:cum,mode:'lines',line:{color:'#F0B90B',width:2.5},name:'你的逃脱率'}]; const layout={...PLOTLY_DARK,height:320,xaxis:{...PLOTLY_DARK.xaxis,title:'局数'},yaxis:{...PLOTLY_DARK.yaxis,title:'逃脱率(%)',range:[0,100]},shapes:[{type:'line',x0:0,x1:results.length-1,y0:66.7,y1:66.7,line:{dash:'dash',color:'#00D4AA'}},{type:'line',x0:0,x1:results.length-1,y0:33.3,y1:33.3,line:{dash:'dash',color:'#FF4757'}}]}; Plotly.newPlot('g02-chart',data,layout,{displayModeBar:false}); }
+
+// ═══════════════════════════════════════
+// GAME 3: 撞头像
+// ═══════════════════════════════════════
+function renderGame03() {
+  const EMJ='😀🎨🎯🎲🎸🎧🎮🎭🎪🎺🎻🎹🎼🎽🎾🎿🏀🏁🏂🏃🏄🏆🏈🏊🏋🏌🏍🏎🏏🏐🏑🏒🏓🏔🏕🏖🏗🏘🏙😃😄😁😆😅🤣😂🙂😉😊😇🥰😍🤩😘😗😋😛😜🤪😝🤑🤗🤭🤫🤔'.split('');
+  if (!S.g03_phase) { S.g03_phase='bet'; S.g03_predict=50; S.g03_people=[]; S.g03_collision_at=null; S.g03_bet_amount=0; saveState(); }
+  let html = topNav(3)+chapterBanner(3);
+  html += `<div class="game-card"><div style="display:flex;gap:20px"><span style="font-size:48px">🎨</span><div><h3 style="color:#F0B90B">撞头像</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">校园App——<b>365个</b>默认头像随机分配。<br>💬 室友：<i>"至少100人以上才会撞头像！"</i><br>你敢赌吗？</p></div></div></div>`;
+
+  if (S.g03_phase==='bet') {
+    html += `<p>🎯 你赌第几个人时撞头像？</p><input type="range" min="5" max="150" value="${S.g03_predict}" oninput="S.g03_predict=parseInt(this.value);saveState();this.nextElementSibling.textContent=S.g03_predict" id="g03-slider"><span style="margin-left:12px;font-size:18px;font-weight:800">${S.g03_predict}</span>`;
+    html += '<div class="btn-group" style="margin-top:12px">';
+    for (const [label,amt] of [['💰 押10',10],['💰 押50',50],['💰 押100',100],['🚀 All-in',S.coins]]) {
+      html += `<button class="btn btn-primary" onclick="game03bet(${amt})">${label}</button>`;
+    }
+    html += '</div>';
+  } else if (S.g03_phase==='running') {
+    html += '<div class="btn-group">';
+    html += `<button class="btn btn-primary" onclick="game03add()" ${S.g03_collision_at!==null?'disabled':''}>👤 +1</button>`;
+    html += `<button class="btn btn-primary" onclick="game03auto()" ${S.g03_collision_at!==null?'disabled':''}>▶ 自动开始</button>`;
+    html += '<button class="btn btn-secondary" onclick="game03resetbet()">🔄 重来</button></div>';
+    if (S.g03_people.length>0) {
+      html += '<div style="line-height:1.2;margin-top:12px">';
+      for (let i=0;i<S.g03_people.length;i++) {
+        const av=S.g03_people[i];
+        const isCollision = S.g03_collision_at && i+1===S.g03_collision_at && S.g03_people.slice(0,i).includes(av);
+        html += `<span class="avatar-icon${isCollision?' collision':''}">${av}</span>`;
+      }
+      html += '</div>';
+      const n=S.g03_people.length;
+      html += `<div style="display:flex;gap:16px;margin-top:12px"><div class="metric-card" style="flex:1"><div>👥 已注册</div><div class="metric-val">${n}</div></div><div class="metric-card" style="flex:1"><div>🔗 配对数</div><div class="metric-val">${(n*(n-1)/2).toLocaleString()}</div></div><div class="metric-card" style="flex:1"><div>🎯 你的赌注</div><div class="metric-val">第${S.g03_predict}人</div></div></div>`;
+    }
+    if (S.g03_collision_at!==null) {
+      showBalloons();
+      const nc=S.g03_collision_at;
+      html += `<h2 style="color:#F0B90B;margin-top:16px">⚡ 第 <b>${nc}</b> 个人——撞头像了！</h2><div id="g03-chart"></div>`;
+      html += '<button class="btn btn-primary btn-full" onclick="game03revealbox()">📊 看分析</button>';
+      setTimeout(game03chart,100);
+    }
+  } else if (S.g03_phase==='reveal') {
+    html += revealBox('秘密不在于365——在于任意两人互相比对',`你预测第<b>${S.g03_predict}</b>人，实际第<b>${S.g03_collision_at}</b>人就撞了。<br><b>23人</b>时碰撞概率就超50%——只有253对比较。<br>配对C(N,2)=N(N-1)/2——增长比你想象快得多。`,'黑客不是猜你的密码，而是在所有人里找任意碰撞。足够大的群体里，"巧合"几乎必然发生。');
+    html += mathDetail('$$P(\\text{碰撞})=1-\\frac{365\\cdots(365-N+1)}{365^N}\\approx 1-e^{-N(N-1)/730}$$ 23人→50.7%，比较的是所有$$C(N,2)$$对。');
+    html += '<button class="btn btn-primary btn-full" onclick="game03resetbet()">🔄 再来</button>';
+    completeGame(3); updateRadar('大数感觉',3);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+  if (S.g03_phase==='running' && S.g03_auto) setTimeout(() => game03autoTick(), S.g03_delay?S.g03_delay*1000:800);
+}
+function game03bet(amt) { S.g03_bet_amount=amt; S.g03_phase='running'; S.g03_people=[]; S.g03_collision_at=null; S.g03_auto=false; S.g03_delay=0.8; saveState(); renderAll(); }
+function game03add() {
+  if (S.g03_collision_at!==null) return;
+  const EMJ='😀🎨🎯🎲🎸🎧🎮🎭🎪🎺🎻🎹🎼🎽🎾🎿🏀🏁🏂🏃🏄🏆🏈🏊🏋🏌🏍🏎🏏🏐🏑🏒🏓🏔🏕🏖🏗🏘🏙😃😄😁😆😅🤣😂🙂😉😊😇🥰😍🤩😘😗😋😛😜🤪😝🤑🤗🤭🤫🤔';
+  const pool=EMJ.slice(0,365);
+  const nw=pool[randint(pool.length)]; S.g03_people.push(nw);
+  if (new Set(S.g03_people).size < S.g03_people.length) S.g03_collision_at=S.g03_people.length;
+  saveState(); renderAll();
+}
+function game03auto() { S.g03_auto=true; saveState(); renderAll(); }
+function game03autoTick() {
+  if (!S.g03_auto || S.g03_collision_at!==null) return;
+  game03add();
+}
+function game03resetbet() { S.g03_phase='bet'; S.g03_people=[]; S.g03_collision_at=null; S.g03_auto=false; saveState(); renderAll(); }
+function game03revealbox() { S.g03_phase='reveal'; saveState(); renderAll(); }
+function game03chart() {
+  const x=[], y=[];
+  for (let i=1;i<=100;i++) { x.push(i); y.push(1-Math.exp(-i*(i-1)/(2*365))); }
+  const data=[{x,y,mode:'lines',line:{color:'#F0B90B',width:3},fill:'tozeroy',fillcolor:'rgba(240,185,11,0.08)'}];
+  const layout={...PLOTLY_DARK,height:350,xaxis:{...PLOTLY_DARK.xaxis,title:'人数'},yaxis:{...PLOTLY_DARK.yaxis,title:'碰撞概率'},shapes:[{type:'line',x0:23,x1:23,y0:0,y1:1,line:{dash:'dash',color:'#00D4AA'}},{type:'line',x0:S.g03_collision_at,x1:S.g03_collision_at,y0:0,y1:1,line:{color:'#FF4757',width:3}}]};
+  Plotly.newPlot('g03-chart', data, layout, {displayModeBar:false});
+}
+
+// ═══════════════════════════════════════
+// GAME 4: 翻倍陷阱
+// ═══════════════════════════════════════
+function renderGame04() {
+  const WIN=1.5, LOSE=0.6, INI=1000;
+  if (!S.g04_phase) { S.g04_phase='intro'; S.g04_balance=INI; S.g04_history=[INI]; S.g04_round=0; S.g04_last_result=null; S.g04_streak_type=null; S.g04_streak_count=0; saveState(); }
+  let html = topNav(4)+chapterBanner(4);
+  html += `<div class="game-card"><div style="display:flex;gap:20px"><span style="font-size:48px">🪙</span><div><h3 style="color:#F0B90B">翻倍陷阱 —— 稳赚的赌局？</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">扔硬币。正面→钱×1.5(+50%)。反面→钱×0.6(-40%)。<br><b>必须All-in</b>。期望=0.5×1.5+0.5×0.6=<b style="color:#00D4AA">1.05</b>——每局+5%！<br>数学不会骗人。你有<b>💰 1,000块</b>。全部押上？</p></div></div></div>`;
+
+  if (S.g04_phase==='intro') {
+    html += '<button class="btn btn-primary btn-full" onclick="game04play()">🪙 扔硬币！All-in</button>';
+  } else if (S.g04_phase==='playing') {
+    const bal=S.g04_balance, rnd=S.g04_round, d=bal-INI;
+    const clr = d>=0?'#00D4AA':'#FF4757';
+    html += `<div style="display:flex;gap:16px;margin-bottom:16px">`;
+    html += `<div class="metric-card" style="flex:1"><div>💰 余额</div><div class="metric-val" style="color:${clr}">${bal.toLocaleString()}</div></div>`;
+    html += `<div class="metric-card" style="flex:1"><div>📈 盈亏</div><div class="metric-val" style="color:${clr}">${d>=0?'+':''}${d.toLocaleString()}</div></div>`;
+    html += `<div class="metric-card" style="flex:1"><div>🎯 局数</div><div class="metric-val">${rnd}</div></div>`;
+    const si=S.g04_streak_type==='win'?'🟢':S.g04_streak_type==='lose'?'🔴':'➖';
+    html += `<div class="metric-card" style="flex:1"><div>${si} 连${S.g04_streak_type==='win'?'胜':'败'}</div><div class="metric-val">${S.g04_streak_count||'-'}</div></div></div>`;
+    if (S.g04_last_result) {
+      html += S.g04_last_result==='win'?`<p style="color:#00D4AA">🟢 上一局：正面！×${WIN} → ${bal.toLocaleString()}</p>`:`<p style="color:#FF4757">🔴 上一局：反面！×${LOSE} → ${bal.toLocaleString()}</p>`;
+      if (rnd>=2) html += `<p style="color:#F0B90B">💡 一赢一亏 = ${WIN}×${LOSE} = <b>${(WIN*LOSE).toFixed(2)}</b>——钱变少了！</p>`;
+    }
+    if (S.g04_history.length>1) {
+      html += '<div id="g04-chart"></div>';
+      setTimeout(game04chart,100);
+    }
+    const nw=bal*WIN, nl=bal*LOSE;
+    html += `<div style="background:#1A1D24;border:2px solid #F0B90B;border-radius:12px;padding:20px;text-align:center;margin:16px 0"><span style="color:#8B8F98">第${rnd+1}局·All-in 💰${bal.toLocaleString()}</span><br>🟢 正面→<b style="color:#00D4AA">${nw.toLocaleString()}</b> | 🔴 反面→<b style="color:#FF4757">${nl.toLocaleString()}</b><br><span style="color:#8B8F98;font-size:11px">期望:0.5×${nw.toLocaleString()}+0.5×${nl.toLocaleString()}=<b>${Math.round((nw+nl)/2).toLocaleString()}</b>(+5%)</span></div>`;
+    html += '<div class="btn-group">';
+    html += '<button class="btn btn-primary" onclick="game04spin()">🪙 扔硬币(随机！)</button>';
+    html += '<button class="btn btn-secondary" onclick="game04auto()">⚡ 快进50局</button>';
+    html += '<button class="btn btn-secondary" onclick="game04quit()">🏃 带钱离场</button></div>';
+  } else if (S.g04_phase==='reveal') {
+    const final=S.g04_balance, nr=S.g04_round;
+    if (final>INI) html += `<p style="color:#00D4AA;font-size:18px">带着 <b>${final.toLocaleString()}</b> 离场，赚了 <b>${(final-INI)>=0?'+':''}${(final-INI).toLocaleString()}</b>。你是极少数幸存者。</p>`;
+    else html += `<p style="color:#FF4757;font-size:18px">余额 <b>${final.toLocaleString()}</b>。玩了${nr}局，几乎归零。</p>`;
+    html += '<div id="g04-chart2"></div><p style="color:#8B8F98;font-size:12px">🔴 红色粗线=你 | 灰色细线=其他29条 | 蓝色虚线=系综平均(稳步上升)</p>';
+    html += '<div id="g04-chart3"></div>';
+    const geom = Math.sqrt(WIN*LOSE);
+    html += `<div style="background:#1A1D24;border:1px solid #2A2D35;border-radius:12px;padding:20px;margin-top:16px"><h4 style="color:#F0B90B">📐 为什么"期望为正"你却亏了？</h4><table><tr><td>🔵 算术平均</td><td>=0.5×${WIN}+0.5×${LOSE}</td><td style="color:#00D4AA;font-weight:700">=1.05 ✓</td></tr><tr><td>🔴 几何平均</td><td>=√(${WIN}×${LOSE})</td><td style="color:#FF4757;font-weight:700">=${geom.toFixed(3)} ✗</td></tr></table><p style="color:#8B8F98;font-size:13px;margin-top:8px">算术平均=平行宇宙的你平均赚多少。<br>几何平均=你在这一个宇宙里反复All-in后还剩多少。<br><b>你的命运由几何均值决定。</b></p></div>`;
+    html += revealBox('遍历性破缺：期望为正的游戏，反复玩却必然破产',`你玩了<b>${nr}</b>局，余额1000→<b>${final.toLocaleString()}</b>。<br>"期望+5%"没算错——但它回答的是错误的问题。<br><b>系综平均</b>(平行宇宙)→每局+5%。<br><b>时间平均</b>(你的路径)→几何均值√(1.5×0.6)=${geom.toFixed(3)}。<br>这就叫<b>遍历性破缺</b>：当过程涉及乘法(复利/All-in)时，系综平均和时间平均是两个东西。`,'创业期望回报为正(VC赚钱)——但你只能活一次。杠杆投资涨50%跌40%→反复All-in→归零。你的命运由几何均值决定。');
+    html += mathDetail('**系综平均** $$E[R]=0.5\\times1.5+0.5\\times0.6=1.05$$ **时间平均** $$G=\\sqrt{1.5\\times0.6}\\approx0.949$$ 非各态历经：时间平均≠系综平均。');
+    html += '<button class="btn btn-primary btn-full" onclick="game04reset()">🔄 重新来过</button>';
+    completeGame(4); updateRadar('独立直觉',4);
+    setTimeout(() => { game04chart2(); game04chart3(); }, 100);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game04play() { S.g04_phase='playing'; saveState(); renderAll(); }
+function game04spin() {
+  const WIN=1.5,LOSE=0.6; const bal=S.g04_balance;
+  const win=Math.random()<0.5;
+  S.g04_balance = bal*(win?WIN:LOSE);
+  S.g04_history.push(S.g04_balance); S.g04_round++;
+  S.g04_last_result = win?'win':'lose';
+  const nt=win?'win':'lose';
+  if (S.g04_streak_type===nt) S.g04_streak_count++; else { S.g04_streak_type=nt; S.g04_streak_count=1; }
+  if (S.g04_balance<1) S.g04_phase='reveal';
+  saveState(); renderAll();
+}
+function game04auto() {
+  const WIN=1.5,LOSE=0.6;
+  for(let i=0;i<50;i++) {
+    const b=S.g04_balance;
+    if(b<1) { S.g04_phase='reveal'; break; }
+    const wn=Math.random()<0.5;
+    S.g04_balance=b*(wn?WIN:LOSE);
+    S.g04_history.push(S.g04_balance); S.g04_round++;
+  }
+  if(S.g04_balance<1) S.g04_phase='reveal';
+  saveState(); renderAll();
+}
+function game04quit() { S.g04_phase='reveal'; saveState(); renderAll(); }
+function game04reset() { delete S.g04_phase;delete S.g04_balance;delete S.g04_history;delete S.g04_round;delete S.g04_last_result;delete S.g04_streak_type;delete S.g04_streak_count; S.g04_phase='intro';S.g04_balance=1000;S.g04_history=[1000];S.g04_round=0; saveState(); renderAll(); }
+function game04chart() {
+  const y=S.g04_history, ens=[], INI=1000;
+  for(let i=0;i<y.length;i++) ens.push(INI*Math.pow(1.05,i));
+  const data=[{y,mode:'lines+markers',line:{color:'#FF4757',width:2.5},marker:{size:6,color:'#F0B90B'},name:'你的余额'},{y:ens,mode:'lines',line:{color:'#00B4D8',width:2,dash:'dash'},name:'系综平均(+5%/局)'}];
+  Plotly.newPlot('g04-chart',data,{...PLOTLY_DARK,height:280,xaxis:{...PLOTLY_DARK.xaxis,title:'局数'},yaxis:{...PLOTLY_DARK.yaxis,title:'余额',type:Math.max(...y)/(Math.min(...y)+0.01)>10?'log':'linear'},shapes:[{type:'line',x0:0,x1:y.length-1,y0:INI,y1:INI,line:{dash:'dot',color:'#8B8F98'}}]},{displayModeBar:false});
+}
+function game04chart2() {
+  const WIN=1.5,LOSE=0.6,INI=1000, nr=Math.max(S.g04_round,50);
+  const traces=[];
+  for(let i=0;i<30;i++) {
+    const t=[INI];
+    for(let j=0;j<nr;j++) t.push(t[t.length-1]*(Math.random()<0.5?WIN:LOSE));
+    traces.push({y:t,mode:'lines',line:{color:i===0?'#FF4757':'#2A2D35',width:i===0?3:0.6},opacity:i===0?1:0.4,showlegend:i===0,name:i===0?'你的路径':undefined});
+  }
+  Plotly.newPlot('g04-chart2',traces,{...PLOTLY_DARK,height:350,xaxis:{...PLOTLY_DARK.xaxis,title:'局数'},yaxis:{...PLOTLY_DARK.yaxis,title:'余额(对数)',type:'log'},shapes:[{type:'line',x0:0,x1:nr-1,y0:INI,y1:INI,line:{dash:'dot',color:'#8B8F98'}}]},{displayModeBar:false});
+}
+function game04chart3() {
+  const WIN=1.5,LOSE=0.6,INI=1000;
+  const finals=[];
+  for(let i=0;i<1000;i++){let b=INI;for(let j=0;j<50;j++)b*=Math.random()<0.5?WIN:LOSE;finals.push(Math.max(b,0.01));}
+  Plotly.newPlot('g04-chart3',[{x:finals,type:'histogram',nbinsx:60,marker:{color:'#F0B90B',opacity:0.7}}],{...PLOTLY_DARK,height:300,xaxis:{...PLOTLY_DARK.xaxis,title:'终局余额',type:'log'},yaxis:{...PLOTLY_DARK.yaxis,title:'人数'},shapes:[{type:'line',x0:Math.log10(INI),x1:Math.log10(INI),y0:0,y1:1,line:{dash:'dash',color:'#00D4AA'},xref:'x',yref:'paper'}]},{displayModeBar:false});
+}
+
+// ═══════════════════════════════════════
+// GAME 5: 天才的诅咒
+// ═══════════════════════════════════════
+function renderGame05() {
+  if (!S.g05_true) {
+    const n=50; const ts=[], s1=[];
+    for(let i=0;i<n;i++){ts.push(randn(75,10)); s1.push(ts[i]+randn(0,8));}
+    S.g05_true=ts; S.g05_s1=s1; S.g05_s2=null; S.g05_picks=[]; S.g05_reason=null; S.g05_phase='stage1';
+    saveState();
+  }
+  let html = topNav(5)+chapterBanner(5);
+  html += `<div class="game-card"><h3>⚽ 天才的诅咒</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">你是俱乐部的<b>首席球探</b>。第一赛季排行榜上突然冒出一批"天才新人"。<br>但你心里很清楚：<b>进球 = 真实天赋 + 随机运气</b>。<br>你只有 <b>3 个签约名额</b>。选错了，明年你的位置就危险了。</p></div>`;
+
+  const s1=S.g05_s1, tru=S.g05_true;
+  if (S.g05_phase==='stage1') {
+    const ranked=s1.map((v,i)=>[i,v]).sort((a,b)=>b[1]-a[1]);
+    html += '<h3>🏆 第一赛季 · 排行榜</h3><div style="display:flex;gap:20px"><div style="flex:1.15"><h4>🔥 前十名球员榜单</h4>';
+    for(let r=0;r<10;r++) {
+      const [idx,goals]=ranked[r];
+      const medal=['🥇','🥈','🥉','🏅','🏅','🏅','🏅','🏅','🏅','🏅'][r];
+      const color=r<3?'#F0B90B':r<5?'#00B4D8':'#4A90D9';
+      html += `<div style="background:#1A1D24;border:1px solid ${color};border-radius:12px;padding:14px 18px;margin-bottom:10px"><div style="display:flex;justify-content:space-between"><div><span style="font-size:22px">${medal}</span><span style="color:${color};font-weight:800;font-size:18px"> 第${r+1}名</span><span style="color:#E4E6EB;font-weight:700;font-size:18px;margin-left:10px">球员 #${String(idx+1).padStart(2,'0')}</span></div><div><span style="color:#F0B90B;font-size:28px;font-weight:800">${goals.toFixed(0)}</span><span style="color:#E4E6EB;font-size:18px"> 球</span></div></div></div>`;
+    }
+    html += '</div><div style="flex:1"><h4>📋 全部50名球员</h4><div style="max-height:360px;overflow-y:auto;font-size:13px;line-height:1.9;font-family:monospace">';
+    for(let r=0;r<ranked.length;r++) {
+      const [idx,goals]=ranked[r];
+      const medal=r<3?['🥇','🥈','🥉'][r]:'  ';
+      const color=r<3?'#F0B90B':r<10?'#E4E6EB':'#8B8F98';
+      const bar='█'.repeat(Math.round(goals/Math.max(...s1)*18));
+      html += `<span style="color:${color}">${medal} #${String(r+1).padStart(2,'0')} 球员#${String(idx+1).padStart(2,'0')} ${goals.toFixed(0).padStart(5)}球 ${bar}</span><br>`;
+    }
+    html += '</div></div></div>';
+    html += '<button class="btn btn-primary btn-full" onclick="game05phase(\'stage2\')">▶ 进入签约环节</button>';
+  } else if (S.g05_phase==='stage2') {
+    html += '<h3>✍️ 球探签约名单</h3><p style="color:#8B8F98">输入球员编号（1~50），最多3人。逗号分隔。</p>';
+    html += `<input type="text" id="g05-input" placeholder="例如：1, 5, 12" value="${S.g05_picks.map(p=>p+1).join(', ')}">`;
+    html += '<button class="btn btn-primary btn-full" style="margin-top:12px" onclick="game05confirm()">▶ 确认签约，进入第二赛季</button>';
+  } else if (S.g05_phase==='stage25') {
+    html += '<h3>🤔 你为什么会选他们？</h3>';
+    html += '<div class="btn-group"><button class="btn btn-primary" onclick="game05reason(\'hot\')">🔥 第一赛季太猛了</button><button class="btn btn-secondary" onclick="game05reason(\'stable\')">📈 看起来更稳定</button><button class="btn btn-secondary" onclick="game05reason(\'genius\')">✨ 感觉像真天才</button></div>';
+  } else if (S.g05_phase==='stage3') {
+    const s2=S.g05_s2, picks=S.g05_picks;
+    const rankedS2=s2.map((v,i)=>[i,v]).sort((a,b)=>b[1]-a[1]);
+    const top10S2=new Set(rankedS2.slice(0,10).map(x=>x[0]));
+    const rankMap={}; rankedS2.forEach(([idx,_],r)=>{rankMap[idx]=r+1;});
+    html += '<h3>📉 第二赛季揭晓</h3><h4>🧾 你签下的3个人</h4><div style="display:flex;gap:12px">';
+    for (const idx of picks) {
+      const diff=s2[idx]-s1[idx], border=tru[idx]>=85?'#00D4AA':'#FF4757';
+      const label=tru[idx]>=85?'🟢 真天才':'🔴 只是运气好';
+      const mood=diff>3?'📈':diff<-3?'📉':'➡️';
+      html += `<div class="metric-card" style="flex:1;border:2px solid ${border}"><span style="color:#E4E6EB;font-weight:800">球员 #${String(idx+1).padStart(2,'0')}</span><br><span style="color:#F0B90B">S1: ${s1[idx].toFixed(0)}球</span><br><span style="color:#00B4D8">S2: ${s2[idx].toFixed(0)}球</span><br><span style="color:${border}">${mood} ${diff>=0?'+':''}${diff.toFixed(0)}</span><br><span style="color:#8B8F98">真实天赋 ${tru[idx].toFixed(0)}</span><br><span style="color:#8B8F98">排名 #${rankMap[idx]}</span><br>${label}</div>`;
+    }
+    html += '</div>';
+    const correct=picks.filter(i=>tru[i]>=85).length;
+    const hitRate=correct/3*100;
+    if(hitRate>=67) html += '<p style="color:#00D4AA;font-size:16px">🎯 你是靠谱球探！命中 '+correct+'/3</p>';
+    else if(hitRate>=34) html += '<p style="color:#F0B90B;font-size:16px">🤔 你有点眼光。命中 '+correct+'/3</p>';
+    else html += '<p style="color:#FF4757;font-size:16px">😬 你被排行榜骗惨了。命中 '+correct+'/3</p>';
+    html += revealBox('极值 = 信号 + 噪声。噪声下次消失，极值自然回弹。',`你签下的3个人中，只有<b>${correct}</b>个是真天才。<br>第一赛季的高分往往不是纯天赋，而是<b>真实能力 + 好运气</b>。<br>第二赛季运气重抽，极端值自然往中间回落。<br>这就是<b>回归均值</b>。`,'爆红一次的主播、突然大赚一年的基金经理、只考好一次的学生——很多"天才时刻"背后，都有噪声站台。');
+    html += mathDetail('**模型**：$$X_i=\\theta_i+\\varepsilon_i$$ $$\\theta_i\\sim\\mathcal{N}(75,10^2)$$ $$\\varepsilon_i\\sim\\mathcal{N}(0,8^2)$$ 条件期望：$$E[\\theta\\mid X_1=x_1]=\\mu+\\frac{\\sigma_\\theta^2}{\\sigma_\\theta^2+\\sigma_\\varepsilon^2}(x_1-\\mu)$$');
+    html += '<button class="btn btn-primary btn-full" onclick="game05reset()">🔄 换一批球员</button>';
+    completeGame(5); updateRadar('大数感觉',4);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game05phase(ph) { S.g05_phase=ph; saveState(); renderAll(); }
+function game05confirm() {
+  const input=document.getElementById('g05-input').value;
+  const nums=input.match(/\d+/g)||[];
+  const picks=[];
+  for(const n of nums){const v=parseInt(n);if(v>=1&&v<=50&&!picks.includes(v-1))picks.push(v-1);}
+  S.g05_picks=picks.slice(0,3);
+  if(S.g05_picks.length===3){S.g05_phase='stage25';saveState();renderAll();}
+}
+function game05reason(r) {
+  S.g05_reason=r;
+  const n=50,s2=[];
+  const tru=S.g05_true;
+  for(let i=0;i<n;i++)s2.push(tru[i]+randn(0,8));
+  S.g05_s2=s2; S.g05_phase='stage3';
+  saveState(); renderAll();
+}
+function game05reset() { delete S.g05_true;delete S.g05_s1;delete S.g05_s2;delete S.g05_picks;delete S.g05_reason;delete S.g05_phase; saveState(); renderAll(); }
+
+// ═══════════════════════════════════════
+// GAME 6: 两个神医
+// ═══════════════════════════════════════
+function renderGame06() {
+  if (!S.g06_phase) { S.g06_phase='overall_choice'; S.g06_first_choice=null; saveState(); }
+  let html = topNav(6)+chapterBanner(6);
+  html += `<div class="game-card"><h3>🏥 两个神医</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">镇上两家诊所打起了擂台。<br>🏆 华大夫挂着巨幅广告：<b style="color:#F0B90B">"治愈率 83%！全镇第一！"</b><br>🏥 张大夫的牌子寒酸得多：<b>"治愈率 78%。"</b><br>你妈打电话来催你挂号：<i>"赶紧挂华大夫，数据都写着呢！"</i></p></div>`;
+
+  if (S.g06_phase==='overall_choice') {
+    html += '<h3>📢 先看广告牌</h3><div style="display:flex;gap:16px">';
+    html += '<div style="flex:1;background:#1a1a10;border:2px solid #F0B90B;border-radius:16px;padding:24px;text-align:center"><span style="font-size:34px">🏆</span><br><span style="color:#F0B90B;font-size:24px;font-weight:800">华大夫</span><br><span style="color:#E4E6EB;font-size:46px;font-weight:900">83%</span><br><span style="color:#8B8F98">总体治愈率</span></div>';
+    html += '<div style="flex:1;background:#101a1a;border:2px solid #00B4D8;border-radius:16px;padding:24px;text-align:center"><span style="font-size:34px">🏥</span><br><span style="color:#00B4D8;font-size:24px;font-weight:800">张大夫</span><br><span style="color:#E4E6EB;font-size:46px;font-weight:900">78%</span><br><span style="color:#8B8F98">总体治愈率</span></div></div>';
+    html += '<h4>🤔 只看总体治愈率，你先挂谁的号？</h4><div class="btn-group">';
+    html += '<button class="btn btn-primary" onclick="game06choose(\'hua\')">🏆 挂华大夫</button>';
+    html += '<button class="btn btn-secondary" onclick="game06choose(\'zhang\')">🏥 挂张大夫</button>';
+    html += '<button class="btn btn-secondary" onclick="game06choose(\'check\')">🤔 先看数据再说</button></div>';
+  } else if (S.g06_phase==='split_view') {
+    html += '<h3>🔬 按病种拆开看看</h3><div id="g06-chart"></div>';
+    html += '<p style="color:#FF4757">🚨 注意：在轻症和重症里，张大夫都赢了。但总体却输给了华大夫。</p>';
+    html += '<button class="btn btn-primary btn-full" onclick="game06phase(\'grouping\')">▶ 继续：这个分组到底合不合理？</button>';
+    setTimeout(()=>{
+      Plotly.newPlot('g06-chart',[{x:['🤧 轻症','🏥 重症'],y:[90,55],type:'bar',name:'华大夫',marker:{color:'#F0B90B'}},{x:['🤧 轻症','🏥 重症'],y:[95,61],type:'bar',name:'张大夫',marker:{color:'#00B4D8'}}],{...PLOTLY_DARK,height:340,barmode:'group',yaxis:{...PLOTLY_DARK.yaxis,range:[0,110],title:'治愈率(%)'}},{displayModeBar:false});
+    },100);
+  } else if (S.g06_phase==='grouping') {
+    html += '<h3>🧠 什么时候可以分组？</h3><p style="color:#8B8F98">下面哪些分组变量是合理的？（可多选）</p>';
+    const opts=['病情轻重（入院时）','年龄段','治疗后是否进入 ICU','治疗后是否出现副作用'];
+    S.g06_grouping= S.g06_grouping||[];
+    for (const o of opts) {
+      const checked = S.g06_grouping.includes(o);
+      html += `<label style="display:block;padding:8px;cursor:pointer"><input type="checkbox" ${checked?'checked':''} onchange="game06toggle(this,'${o}')"> ${o}</label>`;
+    }
+    html += '<button class="btn btn-primary btn-full" onclick="game06submit()">✅ 提交判断</button>';
+  } else if (S.g06_phase==='reveal') {
+    const correct=['病情轻重（入院时）','年龄段'];
+    const answers=S.g06_grouping||[];
+    const allCorrect=correct.every(c=>answers.includes(c))&&answers.every(a=>correct.includes(a));
+    if(allCorrect) html += '<p style="color:#00D4AA">✅ 你选对了分组变量：病情轻重、年龄段。它们都是治疗前就存在的变量。</p>';
+    else html += '<p style="color:#FF4757">❌ 你把治疗后的变量也拿来分组了。这会引入后处理偏差。</p>';
+    html += revealBox('辛普森悖论只告诉你"总体可能骗人"，因果推断更关心"什么时候该分组"','按"病情轻重"分组是合理的，因为它在治疗前就存在。<br>但如果你按"治疗后是否进入ICU"这种变量分组，就会把处理后的信息拿来比较，进而制造后处理偏差。','看到总体数据和分组数据打架时，不要立刻站队。先问：这个分组变量是在治疗前就存在的吗？');
+    html += mathDetail('华总 $$=0.8\\times90\\% + 0.2\\times55\\% = 83\\%$$ 张总 $$=0.2\\times95\\% + 0.8\\times61\\% = 78\\%$$ 这就是辛普森悖论：各组内趋势一致，但总体趋势可能反转。');
+    html += '<button class="btn btn-secondary btn-full" onclick="game06reset()">🔄 重新挂号</button>';
+    completeGame(6); updateRadar('混淆嗅觉',4);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game06choose(c) { S.g06_first_choice=c; S.g06_phase='split_view'; saveState(); renderAll(); }
+function game06phase(ph) { S.g06_phase=ph; saveState(); renderAll(); }
+function game06toggle(cb,o) {
+  if(!S.g06_grouping)S.g06_grouping=[];
+  if(cb.checked&&!S.g06_grouping.includes(o))S.g06_grouping.push(o);
+  else if(!cb.checked)S.g06_grouping=S.g06_grouping.filter(x=>x!==o);
+  saveState();
+}
+function game06submit() { S.g06_phase='reveal'; saveState(); renderAll(); }
+function game06reset() { delete S.g06_phase;delete S.g06_first_choice;delete S.g06_grouping; saveState(); renderAll(); }
+
+// ═══════════════════════════════════════
+// GAME 7: 沉默的大多数
+// ═══════════════════════════════════════
+function renderGame07() {
+  if (!S.g07_stage) { S.g07_stage='testimonials'; S.g07_belief=null; saveState(); }
+  let html = topNav(7)+chapterBanner(7);
+  html += `<div class="game-card"><div style="display:flex;gap:20px"><span style="font-size:48px">💸</span><div><h3 style="color:#00B4D8">沉默的大多数</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">深夜，一条广告精准命中——<br><i style="color:#F0B90B">"30天速成！月入过万。已有<b>50位</b>学员成功变现！"</i><br>下面一长串报喜截图。学费<b>¥499</b>。该不该买？</p></div></div></div>`;
+
+  if (S.g07_stage==='testimonials') {
+    html += '<h3>📜 学员好评墙</h3><div style="display:flex;flex-wrap:wrap;gap:8px">';
+    const testimonials=[['😎','辞职了！月入3万！'],['🎉','2周出单！真的有用！'],['💰','最好的¥499投资'],['🚀','月薪5K→稳定2W+'],['🙏','后悔没早买'],['🔥','已推荐5个朋友'],['✨','第3个月开始盈利'],['💎','改变了我的人生']];
+    for(const [emoji,text] of testimonials) {
+      html += `<div style="width:calc(25% - 6px);background:#1A1D24;border:1px solid #2A2D35;border-radius:10px;padding:14px"><span style="font-size:24px">${emoji}</span><span style="color:#F0B90B">★★★★★</span><br><span style="color:#E4E6EB;font-size:13px">${text}</span></div>`;
+    }
+    html += '</div><h4>💭 你有多相信这个课程？</h4><div class="btn-group">';
+    html += '<button class="btn btn-primary" onclick="game07go(\'high\')">🤩 非常相信！买！</button>';
+    html += '<button class="btn btn-secondary" onclick="game07go(\'mid\')">🤔 有点信</button>';
+    html += '<button class="btn btn-secondary" onclick="game07go(\'low\')">😒 不信</button></div>';
+  } else if (S.g07_stage==='investigate') {
+    html += '<h3>🔍 深挖后台数据</h3>';
+    html += '<details style="margin-bottom:8px"><summary style="cursor:pointer">👁️ 第一层：你看到的</summary><p style="color:#00D4AA;padding:8px">50人成功·50条好评·★★★★★4.9分·好评率98%</p></details>';
+    html += '<details style="margin-bottom:8px"><summary style="cursor:pointer">📂 第二层：购买总人数</summary><p style="color:#F0B90B;padding:8px">累计售出：<b>10,000份</b></p></details>';
+    html += '<details style="margin-bottom:8px"><summary style="cursor:pointer">💀 第三层：沉默的9950人</summary><p style="color:#FF4757;padding:8px"><b>9,950人购买后无任何动静。</b>失败者不会主动写差评。</p></details>';
+    html += '<details style="margin-bottom:8px"><summary style="cursor:pointer">📐 第四层：真实成功率</summary><p style="color:#FF4757;font-size:48px;font-weight:800;padding:8px">0.5%</p><p style="color:#8B8F98">50/10,000</p></details>';
+    html += '<div id="g07-chart"></div>';
+    html += revealBox('你看到的50人——只是10,000个失败者中的0.5%','失败的人不会发帖、不会写好评、不会告诉你"我被割了"。<br><b>幸存者偏差</b>：只有"活下来"的才能进入你的视野。','不只是课程——创业故事只讲成功的、选股只吹涨的。每次看到"大家都成功了"——先问：那些失败的人在哪？');
+    html += mathDetail('观测成功率$$=\\frac{50}{50}=100\\%$$ 真实成功率$$=\\frac{50}{10000}=0.5\\%$$');
+    html += '<button class="btn btn-primary btn-full" onclick="game07reset()">🔄 再体验</button>';
+    completeGame(7); updateRadar('样本警觉',4);
+    setTimeout(()=>{
+      Plotly.newPlot('g07-chart',[{type:'funnel',y:['10,000人购买','9,950人失败(沉默)','50人成功(发声)'],x:[10000,9950,50],marker:{color:['#1A1D24','#FF4757','#00D4AA']},textinfo:'value+percent initial'}],{...PLOTLY_DARK,height:250},{displayModeBar:false});
+    },100);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game07go(b) { S.g07_belief=b; S.g07_stage='investigate'; saveState(); renderAll(); }
+function game07reset() { S.g07_stage='testimonials'; S.g07_belief=null; saveState(); renderAll(); }
+
+// ═══════════════════════════════════════
+// GAME 8: 阳性
+// ═══════════════════════════════════════
+function renderGame08() {
+  if (!S.g08_phase) { S.g08_phase='guess1'; S.g08_guess1=null; S.g08_guess2=null; saveState(); }
+  const prevalence=0.001, accuracy=0.99, n=1000;
+  const ns=Math.max(1,Math.round(n*prevalence)), nh=n-ns;
+  const fp=Math.round(nh*(1-accuracy)), totalPos=ns+fp;
+  const ppv=totalPos>0?ns/totalPos*100:0;
+
+  let html = topNav(8)+chapterBanner(8);
+  html += `<div class="game-card"><h3>🩺 阳性</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">你刚做完一项罕见病筛查。检测机构写着：<b>准确率 99%</b>。<br>报告发到手机上——你点开一看：<b style="font-size:20px;color:#FF4757">阳性</b><br>你心里一沉：<i>"99% 准确率……那我是不是几乎一定得病了？"</i></p></div>`;
+
+  if (S.g08_phase==='guess1') {
+    html += `<div style="background:#1A1D24;border:2px solid #FF4757;border-radius:16px;padding:24px;max-width:520px;margin:0 auto 20px;text-align:center"><span style="font-size:12px;color:#8B8F98">医学检测报告</span><hr style="border-color:#2A2D35;margin:8px 0"><span style="font-size:46px">🔴</span><br><span style="font-size:32px;font-weight:900;color:#FF4757">阳性</span><br><span style="color:#8B8F98;font-size:13px">检测准确率：99%</span></div>`;
+    html += '<h4>🤔 你觉得自己真正患病的概率大概是多少？</h4><div class="btn-group">';
+    for(const [label,k] of [['A. 99%左右','99%'],['B. 70%左右','70%'],['C. 30%左右','30%'],['D. 10%以下','10%以下']]) {
+      html += `<button class="btn btn-primary" onclick="game08guess1('${k}')">${label}</button>`;
+    }
+    html += '</div>';
+  } else if (S.g08_phase==='evidence') {
+    html += `<h3>👥 别急着看公式——先看1000个人</h3><p style="color:#F0B90B">1000个人里，真正得病的只有 <b>${ns}</b> 人。但健康人里，也会有大约 <b>${fp}</b> 人被误报成阳性。</p>`;
+    html += '<div style="font-size:7px;line-height:1.1;font-family:monospace">';
+    const totalWidth=50, totalRows=20;
+    let grid='';
+    for(let row=0;row<totalRows;row++){
+      for(let col=0;col<totalWidth;col++){
+        const idx=row*totalWidth+col;
+        if(idx<ns)grid+='🟥';
+        else if(idx<ns+fp)grid+='🩷';
+        else grid+='⬛';
+      }
+      grid+='<br>';
+    }
+    html += grid+'</div>';
+    html += `<p style="color:#8B8F98;font-size:12px">🟥 真病人 ${ns}人 | 🩷 假阳性 ${fp}人 | ⬛ 真阴性 ${n-ns-fp}人</p>`;
+    html += `<p style="color:#F0B90B">在这 <b>${totalPos}</b> 个阳性结果里，真正有病的只有 <b>${ns}</b> 个。</p>`;
+    html += '<button class="btn btn-primary btn-full" onclick="game08phase(\'guess2\')">▶ 看完1000人，我再猜一次</button>';
+  } else if (S.g08_phase==='guess2') {
+    html += `<p style="color:#F0B90B">你第一次猜的是：<b>${S.g08_guess1}</b></p>`;
+    html += '<h4>现在你觉得，阳性后真正患病的概率是多少？</h4><div class="btn-group">';
+    for(const [label,k] of [['A. 99%左右','99%'],['B. 70%左右','70%'],['C. 30%左右','30%'],['D. 10%以下','10%以下']]) {
+      html += `<button class="btn btn-primary" onclick="game08guess2('${k}')">${label}</button>`;
+    }
+    html += '</div>';
+  } else if (S.g08_phase==='lab') {
+    const prevLive=(S.g08_prev_live||0.001)*100, accLive=(S.g08_acc_live||0.99)*100;
+    html += `<h3>🧪 参数实验室</h3><p style="color:#8B8F98">拖动参数，看看报告单和真实患病概率怎么变化。</p>`;
+    html += `<label>🦠 发病率 <input type="range" min="0.01" max="10" step="0.01" value="${prevLive}" oninput="S.g08_prev_live=this.value/100;saveState();renderAll()"></label> <span>${prevLive.toFixed(2)}%</span><br>`;
+    html += `<label>🔬 检测准确率 <input type="range" min="80" max="99.9" step="0.1" value="${accLive}" oninput="S.g08_acc_live=this.value/100;saveState();renderAll()"></label> <span>${accLive.toFixed(1)}%</span><br>`;
+    // Recalculate with live values
+    const pv=(S.g08_prev_live||0.001), ac=(S.g08_acc_live||0.99);
+    const nsl=Math.max(1,Math.round(n*pv)), nhl=n-nsl;
+    const fpl=Math.round(nhl*(1-ac)), tpl=nsl+fpl;
+    const ppvl=tpl>0?nsl/tpl*100:0;
+    const rptColor=ppvl<30?'#FF4757':ppvl<70?'#F0B90B':'#00D4AA';
+    html += `<div style="background:#1A1D24;border:2px solid ${rptColor};border-radius:16px;padding:24px;max-width:520px;margin:16px auto;text-align:center"><span style="font-size:46px">${ppvl<30?'🔴':ppvl<70?'🟡':'🟢'}</span><br><span style="font-size:32px;font-weight:900;color:${rptColor}">阳性</span><br><span style="color:#8B8F98">真实患病概率</span><br><span style="font-size:30px;font-weight:900;color:${rptColor}">${ppvl.toFixed(1)}%</span><br><span style="color:#8B8F98">阳性${tpl}人中，真病人${nsl}人</span></div>`;
+    html += '<button class="btn btn-primary btn-full" onclick="game08reveal()">▶ 现在揭晓为什么直觉会出错</button>';
+  } else if (S.g08_phase==='reveal') {
+    const finalPpv = S.g08_final_ppv || ppv;
+    html += `<h3>🎯 真实答案：阳性后真正患病的概率大约是 <b>${finalPpv.toFixed(1)}%</b></h3>`;
+    html += `<p>第一次猜：<b>${S.g08_guess1}</b> | 第二次猜：<b>${S.g08_guess2}</b> | <span style="color:#F0B90B">真实值：<b>${finalPpv.toFixed(1)}%</b></span></p>`;
+    html += revealBox('你被"99%准确率"吓到了——但它不是你最关心的概率','你真正想知道的是：<b>在阳性的人里，我得病的概率是多少？</b><br>这叫 $$P(患病\\mid阳性)$$。<br>而"99%准确率"说的是：$$P(阳性\\mid患病)$$。<br>这两个概率不是一回事。<br>当疾病本身很罕见时，哪怕检测很准，也会有一批健康人被误报成阳性。','医学、测谎、风控、量化模型……所有高准确率场景里，最容易犯的错就是：把条件概率误当成后验概率。');
+    html += mathDetail('**贝叶斯定理** $$P(D\\mid +)=\\frac{P(+\\mid D)P(D)}{P(+\\mid D)P(D)+P(+\\mid \\neg D)P(\\neg D)}$$ 发病率0.1%、准确率99%时：$$P(D\\mid +)\\approx 9\\%$$');
+    html += '<button class="btn btn-secondary btn-full" onclick="game08reset()">🔄 重新体检</button>';
+    completeGame(8); updateRadar('贝叶斯脑',4);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game08guess1(g) { S.g08_guess1=g; S.g08_phase='evidence'; saveState(); renderAll(); }
+function game08guess2(g) { S.g08_guess2=g; S.g08_phase='lab'; saveState(); renderAll(); }
+function game08phase(ph) { S.g08_phase=ph; saveState(); renderAll(); }
+function game08reveal() {
+  const pv=S.g08_prev_live||0.001, ac=S.g08_acc_live||0.99;
+  const nsl=Math.max(1,Math.round(1000*pv)), nhl=1000-nsl;
+  const fpl=Math.round(nhl*(1-ac)), tpl=nsl+fpl;
+  S.g08_final_ppv=tpl>0?nsl/tpl*100:0;
+  S.g08_phase='reveal'; saveState(); renderAll();
+}
+function game08reset() { delete S.g08_phase;delete S.g08_guess1;delete S.g08_guess2;delete S.g08_prev_live;delete S.g08_acc_live;delete S.g08_final_ppv; saveState(); renderAll(); }
+
+// ═══════════════════════════════════════
+// GAME 9: 离奇档案
+// ═══════════════════════════════════════
+function renderGame09() {
+  // Built-in spurious correlations data
+  const cases = [
+    {title:'冰淇淋与溺亡',var_x:'冰淇淋销量',var_y:'溺亡人数',hidden_variable:'气温',explanation:'天气热→吃冰淇淋多+游泳人多→溺亡多。气温同时推动两边。'},
+    {title:'尼古拉斯·凯奇与泳池',var_x:'凯奇电影数',var_y:'泳池溺亡',hidden_variable:'年份/趋势',explanation:'凯奇片约周期与夏季游泳安全数据偶然同步。'},
+    {title:'手机与谋杀',var_x:'智能手机普及率',var_y:'谋杀案',hidden_variable:'人口增长',explanation:'智能手机和很多社会指标都随时间一起涨。'},
+    {title:'有机食品与自闭症',var_x:'有机食品销量',var_y:'自闭症诊断',hidden_variable:'健康意识/诊断标准变化',explanation:'两者背后是不同的社会趋势，但都随时间上升。'}
+  ];
+  if (!S.g09_phase) { S.g09_phase='cover'; S.g09_idx=0; S.g09_first_judgment=null; S.g09_final_judgment=null; S.g09_evidence=new Set(); saveState(); }
+  const idx = (S.g09_idx||0) % cases.length;
+  const row = cases[idx];
+
+  let html = topNav(9)+chapterBanner(9);
+  html += `<div class="game-card"><h3>📁 离奇档案</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">你是一个喜欢"数据破案"的博主。今天你收到了一份神秘档案：<br><i>"这两条曲线高度同步，背后一定藏着什么秘密。"</i><br>你的编辑只回了你一句：<b>"先别急着发。再查查。"</b></p></div>`;
+
+  // Generate synthetic data for this case
+  const years=Array.from({length:20},(_,i)=>2000+i);
+  let tx=[], ty=[];
+  let acc=0;
+  for(let i=0;i<20;i++){acc+=randn(0.5,0.3);tx.push(acc);}
+  acc=0;
+  for(let i=0;i<20;i++){acc=tx[i]*0.85+randn(0,0.15);ty.push(acc);}
+  let r=0; {let sx=0,sy=0,sxx=0,syy=0,sxy=0; const mx=tx.reduce((a,b)=>a+b)/tx.length, my=ty.reduce((a,b)=>a+b)/ty.length; for(let i=0;i<tx.length;i++){sxx+=(tx[i]-mx)**2;syy+=(ty[i]-my)**2;sxy+=(tx[i]-mx)*(ty[i]-my);} r=sxy/Math.sqrt(sxx*syy);}
+
+  if (S.g09_phase==='cover') {
+    html += `<h3>🗂️ 案卷 #${idx+1}：${row.title}</h3>`;
+    html += `<div style="background:#1A1D24;border:1px solid #2A2D35;border-radius:14px;padding:20px"><span class="chip" style="background:#1a1515;color:#FF4757">危险等级：高相关</span> <span class="chip" style="background:#151a15;color:#00D4AA">相关系数：${r.toFixed(2)}</span><p style="margin-top:14px;color:#E4E6EB">变量A：<b>${row.var_x}</b><br>变量B：<b>${row.var_y}</b></p></div>`;
+    html += '<h4>🤔 第一直觉：你觉得这是什么类型的关系？</h4><div class="btn-group">';
+    html += '<button class="btn btn-primary" onclick="game09first(\'cause\')">🧨 这大概率是真因果</button>';
+    html += '<button class="btn btn-secondary" onclick="game09first(\'suspicious\')">🤔 有点可疑，再看看</button>';
+    html += '<button class="btn btn-secondary" onclick="game09first(\'coincidence\')">❄️ 只是巧合吧</button></div>';
+  } else if (S.g09_phase==='inspect') {
+    html += `<h3>📊 原始证据：${row.title}</h3><div id="g09-chart1"></div>`;
+    html += '<h4>📰 如果你现在就发推文，你会写什么标题？</h4><div class="btn-group">';
+    html += `<button class="btn btn-primary" onclick="game09phase2('investigate')">"${row.var_x} 导致了 ${row.var_y}！"</button>`;
+    html += '<button class="btn btn-secondary" onclick="game09phase2(\'investigate\')">"它们只是相关"</button>';
+    html += '<button class="btn btn-secondary" onclick="game09phase2(\'investigate\')">"我要再查一个变量"</button></div>';
+    setTimeout(()=>{
+      Plotly.newPlot('g09-chart1',[{y:tx,mode:'lines+markers',name:row.var_x,line:{color:'#00B4D8',width:2}},{y:ty,mode:'lines+markers',name:row.var_y,line:{color:'#E07B39',width:2},yaxis:'y2'}],{...PLOTLY_DARK,height:320,xaxis:{...PLOTLY_DARK.xaxis,title:'年份'},yaxis:{...PLOTLY_DARK.yaxis,title:row.var_x,color:'#00B4D8'},yaxis2:{title:row.var_y,overlaying:'y',side:'right',color:'#E07B39',gridcolor:'#2A2D35'}},{displayModeBar:false});
+    },100);
+  } else if (S.g09_phase==='investigate') {
+    html += '<h3>🕵️ 调查模式：再查三条证据</h3><div class="btn-group">';
+    const ev= S.g09_evidence || new Set();
+    html += `<button class="btn btn-secondary" onclick="game09ev('temp')">🔍 调隐藏变量</button>`;
+    html += `<button class="btn btn-secondary" onclick="game09ev('season')">📅 看时间结构</button>`;
+    html += `<button class="btn btn-secondary" onclick="game09ev('experiment')">🧪 想象实验</button></div>`;
+    if (ev.has('temp')) html += `<p style="color:#F0B90B;padding:8px">${row.hidden_variable} 的变化与两条线都有关，它可能在同时推动两边。</p>`;
+    if (ev.has('season')) html += '<p style="color:#F0B90B;padding:8px">时间分布显示两条线可能只是共同追随某种背景趋势。</p>';
+    if (ev.has('experiment')) html += '<p style="color:#FF4757;padding:8px">如果你真的要验证 A 导致 B，就需要控制第三个因素做干预实验。</p>';
+    if (ev.size>=2) html += '<button class="btn btn-primary btn-full" onclick="game09phase2(\'final_judge\')">▶ 做最终判断</button>';
+  } else if (S.g09_phase==='final_judge') {
+    html += '<h3>⚖️ 最终判断</h3><div class="btn-group">';
+    html += `<button class="btn btn-secondary" onclick="game09final('AB')">${row.var_x} → ${row.var_y}</button>`;
+    html += `<button class="btn btn-secondary" onclick="game09final('BA')">${row.var_y} → ${row.var_x}</button>`;
+    html += '<button class="btn btn-primary" onclick="game09final(\'hidden\')">第三变量同时驱动</button>';
+    html += '<button class="btn btn-secondary" onclick="game09final(\'coincidence\')">只是巧合</button></div>';
+  } else if (S.g09_phase==='reveal') {
+    const ans=S.g09_final_judgment, correct=ans==='hidden';
+    if(correct) html += `<p style="color:#00D4AA">✅ 你查出了幕后黑手：${row.hidden_variable}</p>`;
+    else html += `<p style="color:#FF4757">❌ 真相不是你选的那个。最合理的解释是：隐藏变量『${row.hidden_variable}』在同时推动两条线。</p>`;
+    html += `<p style="color:#F0B90B">${row.explanation}</p>`;
+    html += revealBox('相关高得吓人，但两条线仍然可能毫无因果关系',`相关系数 ${r.toFixed(3)} 并不意味着因果。<br>真正的结构是：$$${row.var_x} \\leftarrow ${row.hidden_variable} \\rightarrow ${row.var_y}$$`,'很多"惊天秘密"其实只是背景变量在作祟。');
+    html += mathDetail('**虚假相关**：$$\\mathrm{Corr}(X,Y)>0.9$$ 并不意味 $$X\\to Y$$。更常见的结构：$$X \\leftarrow Z \\rightarrow Y$$');
+    html += '<div class="btn-group"><button class="btn btn-primary" onclick="game09next()">▶ 查看下一份档案</button><button class="btn btn-secondary" onclick="game09reset()">🔄 重置</button></div>';
+    completeGame(9); updateRadar('因果链条',correct?4:2);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game09first(j) { S.g09_first_judgment=j; S.g09_phase='inspect'; saveState(); renderAll(); }
+function game09phase2(ph) { S.g09_phase=ph; saveState(); renderAll(); }
+function game09ev(e) { if(!S.g09_evidence)S.g09_evidence=new Set(); S.g09_evidence.add(e); saveState(); renderAll(); }
+function game09final(j) { S.g09_final_judgment=j; S.g09_phase='reveal'; saveState(); renderAll(); }
+function game09next() { S.g09_idx=(S.g09_idx||0)+1; S.g09_phase='cover'; S.g09_first_judgment=null; S.g09_final_judgment=null; S.g09_evidence=new Set(); saveState(); renderAll(); }
+function game09reset() { delete S.g09_phase;delete S.g09_idx;delete S.g09_first_judgment;delete S.g09_final_judgment;delete S.g09_evidence; saveState(); renderAll(); }
+
+// ═══════════════════════════════════════
+// GAME 10: 鸡与蛋
+// ═══════════════════════════════════════
+function renderGame10() {
+  const cases={
+    A:{client:'👓 眼镜公司老板',data:'戴眼镜的人平均智商高8分。p<0.001。',claim:'推广眼镜→让下一代更聪明。',truth:'高智商→更爱学习→更容易近视→需要眼镜。不是眼镜让人聪明。',timeline:['👶 童年视力习惯','👓 近视形成/配眼镜','📚 长期学习','🧠 智力测验更高']},
+    B:{client:'🚒 消防局长',data:'派出去的消防员越多，火灾财产损失越大。',claim:'减少消防员→降低损失。',truth:'大火→派出更多消防员→财产损失更大。不是消防员导致损失上升。',timeline:['🔥 火势扩大','🚒 派出更多消防员','🏚️ 财产损失上升']},
+    C:{client:'🏥 医院院长',data:'住院时间越长的人，死亡率越高。',claim:'尽早出院→减少死亡。',truth:'病情更重→住院更久→死亡率更高。不是住院害死人。',timeline:['🧬 基础病情严重','🏥 住院时间更长','☠️ 死亡率更高']}
+  };
+  if (!S.g10_phase) { S.g10_phase='desk'; S.g10_current=null; S.g10_results={}; S.g10_first_impression={}; S.g10_arrow_choice={}; saveState(); }
+
+  let html = topNav(10)+chapterBanner(10);
+  html += `<div class="game-card"><div style="display:flex;gap:20px"><span style="font-size:48px">🐔</span><div><h3 style="color:#E07B39">鸡与蛋</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">三位委托人，各自带着一份"看起来很有道理"的数据结论来找你。<br>你的任务不是只答题，而是识别：<b>这句话到底是真的找到因果，还是把箭头画反了？</b></p></div></div></div>`;
+
+  if (S.g10_phase==='desk') {
+    html += '<h3>🗂️ 案件桌面</h3><div style="display:flex;gap:12px">';
+    for(const key of ['A','B','C']) {
+      const c=cases[key], done=key in S.g10_results;
+      html += `<div style="flex:1;background:#1A1D24;border:2px solid ${done?'#00D4AA':'#2A2D35'};border-radius:14px;padding:18px"><span style="font-size:28px">${c.client.split(' ')[0]}</span><br><span style="color:#E4E6EB;font-weight:800;font-size:18px">案卷 ${key}</span><br><span style="color:#8B8F98;font-size:13px">${c.client}</span><br><br><span style="color:#E4E6EB;font-size:13px">${c.data}</span><br><span style="color:${done?'#00D4AA':'#8B8F98'};font-size:12px">${done?'✅ 已处理':'待调查'}</span><br><button class="btn btn-primary btn-full" style="margin-top:8px" onclick="game10open('${key}')">打开案卷 ${key}</button></div>`;
+    }
+    html += '</div>';
+    if(Object.keys(S.g10_results).length===3) html += '<button class="btn btn-primary btn-full" onclick="game10summary()">📊 查看结案总结</button>';
+  } else if (S.g10_phase==='case') {
+    const ck=S.g10_current, c=cases[ck];
+    html += `<h3>📋 案卷 ${ck}：${c.client}</h3><p>📊 <b>数据摘要</b>：${c.data}</p><p>💬 <b>委托人结论</b>：<i>${c.claim}</i></p>`;
+    if (!(ck in S.g10_first_impression)) {
+      html += '<h4>第一反应：这个结论看起来靠谱吗？</h4><div class="btn-group">';
+      html += `<button class="btn btn-primary" onclick="game10imp('${ck}','seems_right')">✅ 好像有道理</button>`;
+      html += `<button class="btn btn-secondary" onclick="game10imp('${ck}','suspicious')">🤔 感觉有问题</button>`;
+      html += `<button class="btn btn-secondary" onclick="game10imp('${ck}','unsure')">❓ 我不确定</button></div>`;
+    } else {
+      html += `<p style="color:#F0B90B">你的第一反应：<b>${S.g10_first_impression[ck]}</b></p>`;
+      html += '<h4>现在真正判断：因果箭头怎么画？</h4><div class="btn-group">';
+      html += `<button class="btn btn-secondary" onclick="game10arrow('${ck}','AB')">A→B</button>`;
+      html += `<button class="btn btn-primary" onclick="game10arrow('${ck}','BA')">B→A</button>`;
+      html += `<button class="btn btn-secondary" onclick="game10arrow('${ck}','both')">🔄 双向</button>`;
+      html += `<button class="btn btn-secondary" onclick="game10arrow('${ck}','none')">❌ 无关</button></div>`;
+    }
+  } else if (S.g10_phase==='reveal') {
+    const ck=S.g10_current, c=cases[ck];
+    const correct=S.g10_results[ck];
+    if(correct) html += '<p style="color:#00D4AA;font-size:18px">✅ 你看出来了：他们把箭头画反了。</p>';
+    else html += '<p style="color:#FF4757;font-size:18px">❌ 问题不在相关本身，而在于因果方向被画反了。</p>';
+    html += '<h3>⏱️ 时间轴揭示</h3><div style="background:#1A1D24;border:1px solid #2A2D35;border-radius:12px;padding:18px">';
+    for(let i=0;i<c.timeline.length;i++){
+      html += `<div style="color:#E4E6EB;font-size:15px;line-height:1.8">${c.timeline[i]}</div>`;
+      if(i<c.timeline.length-1) html += '<div style="color:#8B8F98;font-size:20px">↓</div>';
+    }
+    html += `</div><h3>🔍 真相</h3><p><b>${c.truth}</b></p>`;
+    if(Object.keys(S.g10_results).length<3) html += '<button class="btn btn-primary btn-full" onclick="game10back()">📂 回到案件桌面</button>';
+    else html += '<button class="btn btn-primary btn-full" onclick="game10summary()">📊 查看结案总结</button>';
+  } else if (S.g10_phase==='summary') {
+    html += '<h3>🧾 结案总结</h3><table><tr><th>案卷</th><th>委托人</th><th>第一反应</th><th>最终判断</th><th>结果</th></tr>';
+    for(const key of ['A','B','C']) {
+      const c=cases[key];
+      html += `<tr><td>${key}</td><td>${c.client}</td><td>${S.g10_first_impression[key]||'-'}</td><td>${S.g10_arrow_choice[key]||'-'}</td><td>${S.g10_results[key]?'✅':'❌'}</td></tr>`;
+    }
+    html += '</table>';
+    const correctN=Object.values(S.g10_results).filter(v=>v).length;
+    html += revealBox('横截面相关无法告诉你因果方向',`你共处理了3个案子，答对了<b>${correctN}/3</b>。<br>真正的问题不是相关强不强，而是：<b>谁先发生，谁后发生？</b>`,'喝红酒的人更健康？加班多的人升职更快？看到相关，先问：箭头凭什么这样画？');
+    html += mathDetail('在横截面数据里，$$X$$ 与 $$Y$$ 的统计关联并不能区分：$$X \\to Y$$ 还是 $$Y \\to X$$');
+    html += '<button class="btn btn-secondary btn-full" onclick="game10reset()">🔄 重新办案</button>';
+    completeGame(10); updateRadar('因果链条',correctN>=2?4:2);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game10open(k) { S.g10_current=k; S.g10_phase='case'; saveState(); renderAll(); }
+function game10imp(ck,imp) { S.g10_first_impression[ck]=imp; saveState(); renderAll(); }
+function game10arrow(ck,arr) {
+  S.g10_arrow_choice[ck]=arr; S.g10_results[ck]=(arr==='BA'); S.g10_phase='reveal'; saveState(); renderAll();
+}
+function game10back() { S.g10_phase='desk'; S.g10_current=null; saveState(); renderAll(); }
+function game10summary() { S.g10_phase='summary'; saveState(); renderAll(); }
+function game10reset() { delete S.g10_phase;delete S.g10_current;delete S.g10_results;delete S.g10_first_impression;delete S.g10_arrow_choice; saveState(); renderAll(); }
+
+// ═══════════════════════════════════════
+// GAME 11: 幕后黑手
+// ═══════════════════════════════════════
+function renderGame11() {
+  if (!S.g11_data) {
+    const n=500;
+    const late_night=[], coffee=[], heart=[];
+    for(let i=0;i<n;i++){
+      const ln=Math.random()<0.3?1:0;
+      late_night.push(ln);
+      const cf=ln===1?randn(5,2):randn(2,1.5);
+      coffee.push(Math.max(0,Math.min(10,cf)));
+      heart.push(40+coffee[i]*0.1+ln*15+randn(0,5));
+    }
+    S.g11_data={coffee,late_night,heart_risk:heart}; S.g11_stage='act1';
+    saveState();
+  }
+  const df=S.g11_data;
+  let html = topNav(11)+chapterBanner(11);
+  html += `<div class="game-card"><div style="display:flex;gap:20px"><span style="font-size:48px">🕵️</span><div><h3 style="color:#E07B39">幕后黑手</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">咖啡连锁被指控"喝咖啡导致心脏病"——发病率高<b>40%</b>。<br>老板找你危机公关：<i>"去查查数据到底有没有问题。"</i></p></div></div></div>`;
+
+  if (S.g11_stage==='act1') {
+    html += '<h3>🎬 第一幕：铁证如山</h3><div id="g11-chart1"></div>';
+    html += '<h4>💭 咖啡应该为此负责吗？</h4><div class="btn-group">';
+    html += '<button class="btn btn-primary" onclick="game11judge(\'yes\')">✅ 是</button>';
+    html += '<button class="btn btn-secondary" onclick="game11judge(\'unsure\')">🤔 不确定</button>';
+    html += '<button class="btn btn-secondary" onclick="game11judge(\'no\')">❌ 感觉有问题</button></div>';
+    setTimeout(()=>{
+      const trace={x:df.coffee,y:df.heart_risk,mode:'markers',type:'scatter',marker:{color:'#E07B39',size:6,opacity:0.6}};
+      Plotly.newPlot('g11-chart1',[trace],{...PLOTLY_DARK,height:350,xaxis:{...PLOTLY_DARK.xaxis,title:'每日咖啡杯数'},yaxis:{...PLOTLY_DARK.yaxis,title:'心脏病风险'}},{displayModeBar:false});
+    },100);
+  } else if (S.g11_stage==='act2') {
+    html += '<h3>🎬 第二幕：幕后黑手现身</h3><p style="color:#F0B90B">有个变量他们没给你看——<b>长期熬夜</b>。</p>';
+    html += '<div id="g11-chart2"></div>';
+    html += '<p style="color:#00D4AA;font-size:16px">长期熬夜组和作息正常组内部，咖啡与心脏病的关系几乎消失了。真正把两者同时推高的，是长期熬夜。</p>';
+    html += revealBox('咖啡不是罪魁祸首——是长期熬夜这个没被看到的变量','第一眼看数据时，咖啡和心脏病风险确实相关。<br>但长期熬夜的人往往喝更多咖啡，同时心血管风险也更高。<br><b>这就是遗漏变量偏差。</b>','就像"学音乐的孩子成绩更好"，真正可能在起作用的并不是音乐本身，而是家庭资源、教育投入这些没被写进表格里的变量。');
+    html += mathDetail('**DAG** 咖啡$$(X)\\leftarrow$$长期熬夜$$(Z)\\rightarrow$$心脏病$$(Y)$$。<br>如果不控制 $$Z$$，你就会把 $$X$$ 和 $$Y$$ 之间的虚假相关误认为因果。');
+    html += '<button class="btn btn-secondary btn-full" onclick="game11reset()">🔄 重新调查</button>';
+    completeGame(11); updateRadar('混淆嗅觉',4);
+    setTimeout(()=>{
+      const late=[],normal=[];
+      for(let i=0;i<df.coffee.length;i++){
+        if(df.late_night[i]===1) late.push({x:df.coffee[i],y:df.heart_risk[i]});
+        else normal.push({x:df.coffee[i],y:df.heart_risk[i]});
+      }
+      Plotly.newPlot('g11-chart2',[
+        {x:late.map(d=>d.x),y:late.map(d=>d.y),mode:'markers',type:'scatter',name:'长期熬夜',marker:{color:'#FF4757',size:6,opacity:0.5}},
+        {x:normal.map(d=>d.x),y:normal.map(d=>d.y),mode:'markers',type:'scatter',name:'作息正常',marker:{color:'#00B4D8',size:6,opacity:0.5}}
+      ],{...PLOTLY_DARK,height:350,xaxis:{...PLOTLY_DARK.xaxis,title:'每日咖啡杯数'},yaxis:{...PLOTLY_DARK.yaxis,title:'心脏病风险'}},{displayModeBar:false});
+    },100);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game11judge(j) { S.g11_judge=j; S.g11_stage='act2'; saveState(); renderAll(); }
+function game11reset() { delete S.g11_data;delete S.g11_stage;delete S.g11_judge; saveState(); renderAll(); }
+
+// ═══════════════════════════════════════
+// GAME 12: 星光错觉
+// ═══════════════════════════════════════
+function renderGame12() {
+  if (!S.g12_beauty) {
+    const n=300, beauty=[], talent=[];
+    for(let i=0;i<n;i++){beauty.push(randn(50,15));talent.push(randn(50,15));}
+    S.g12_beauty=beauty; S.g12_talent=talent; S.g12_phase='story';
+    saveState();
+  }
+  const beauty=S.g12_beauty, talent=S.g12_talent;
+  let html = topNav(12)+chapterBanner(12);
+  html += `<div class="game-card"><div style="display:flex;gap:20px"><span style="font-size:48px">🌟</span><div><h3 style="color:#E07B39">星光错觉</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">💬 选角导演：<i>"好看演员演技都差，两者天然互斥。我当了三十年选角导演！"</i><br>💬 助理：<i>"老板，我给你看个东西。"</i></p></div></div></div>`;
+
+  function corr(a,b){const n=a.length;let sx=0,sy=0,sxx=0,syy=0,sxy=0;for(let i=0;i<n;i++){sx+=a[i];sy+=b[i];}const mx=sx/n,my=sy/n;for(let i=0;i<n;i++){sxx+=(a[i]-mx)**2;syy+=(b[i]-my)**2;sxy+=(a[i]-mx)*(b[i]-my);}return sxy/Math.sqrt(sxx*syy);}
+  const rAll=corr(beauty,talent);
+
+  if (S.g12_phase==='story') {
+    html += `<div id="g12-chart1"></div><p style="color:#00D4AA">📊 r=${rAll.toFixed(3)}——完全独立，毫无关系。</p>`;
+    html += '<h4>🤔 那为什么导演会觉得"好看=没演技"？</h4><div class="btn-group">';
+    html += '<button class="btn btn-primary" onclick="game12go(\'explore\')">因为他只看被录取的演员</button>';
+    html += '<button class="btn btn-secondary" onclick="game12go(\'explore\')">因为确实负相关</button></div>';
+    setTimeout(()=>{
+      Plotly.newPlot('g12-chart1',[{x:beauty,y:talent,mode:'markers',type:'scatter',marker:{color:'#8B8F98',size:5,opacity:0.5}}],{...PLOTLY_DARK,height:360,xaxis:{...PLOTLY_DARK.xaxis,title:'颜值'},yaxis:{...PLOTLY_DARK.yaxis,title:'演技'},title:'全部报名者：颜值和演技毫无关系！'},{displayModeBar:false});
+    },100);
+  } else if (S.g12_phase==='explore') {
+    const thr=S.g12_threshold||110;
+    html += `<label>🎚️ 录取线(颜值+演技) <input type="range" min="50" max="150" value="${thr}" oninput="S.g12_threshold=parseInt(this.value);saveState();renderAll()"></label> <span>${thr}</span>`;
+    const sel=beauty.map((b,i)=>b+talent[i]>=thr);
+    const bs=[], ts=[];
+    for(let i=0;i<beauty.length;i++){if(sel[i]){bs.push(beauty[i]);ts.push(talent[i]);}}
+    const rSel=bs.length>10?corr(bs,ts):0;
+    html += '<div style="display:flex;gap:12px"><div style="flex:1"><div id="g12-chart2"></div></div><div style="flex:1"><div id="g12-chart3"></div></div></div>';
+    html += `<p>📊 全人群r=${rAll.toFixed(3)}→录取后r=${rSel.toFixed(3)}→${rSel<-0.2?'🔴虚假负相关！':'调整阈值'}</p>`;
+    if(Math.abs(rSel)>0.2&&rSel<0) html += '<button class="btn btn-primary btn-full" onclick="game12reveal()">💡 我看到负相关了！为什么？</button>';
+    setTimeout(()=>{
+      Plotly.newPlot('g12-chart2',[{x:beauty,y:talent,mode:'markers',type:'scatter',marker:{color:'#8B8F98',size:5,opacity:0.4}}],{...PLOTLY_DARK,height:320,xaxis:{...PLOTLY_DARK.xaxis,title:'颜值'},yaxis:{...PLOTLY_DARK.yaxis,title:'演技'},title:`r=${rAll.toFixed(3)}(无关)`},{displayModeBar:false});
+      if(bs.length>0) Plotly.newPlot('g12-chart3',[{x:bs,y:ts,mode:'markers',type:'scatter',marker:{color:'#E07B39',size:7,opacity:0.7}}],{...PLOTLY_DARK,height:320,xaxis:{...PLOTLY_DARK.xaxis,title:'颜值'},yaxis:{...PLOTLY_DARK.yaxis,title:'演技'},title:`r=${rSel.toFixed(3)}${rSel<-0.2?'(伪负相关！)':''}`},{displayModeBar:false});
+    },100);
+  } else if (S.g12_phase==='reveal') {
+    const thr=110, sel=beauty.map((b,i)=>b+talent[i]>=thr);
+    const bs=beauty.filter((_,i)=>sel[i]), ts=talent.filter((_,i)=>sel[i]);
+    const rSel=corr(bs,ts);
+    html += revealBox('你看到的负相关——是你自己选的',`全部报名者中颜值和演技<b>完全独立</b>(r=${rAll.toFixed(3)})。<br>但当你只选"总分够高"的人——负相关出现了(r=${rSel.toFixed(3)})。<br>控制一个<b>对撞变量</b>(是否被录取)，在两个独立变量间<b>凭空创造</b>了负相关。`,"'漂亮女生都高冷'——你只敢搭讪好看的，好看且热情的早就有对象了。'有钱人都抠'——你只在有钱但不花钱的人里观察。");
+    html += mathDetail('全部$$\\text{Corr}(B,T)=0$$ 控制对撞后$$\\text{Corr}(B,T\\mid B+T\\geq\\theta)<0$$');
+    html += '<button class="btn btn-primary btn-full" onclick="game12reset()">🔄 重新体验</button>';
+    completeGame(12); updateRadar('样本警觉',rSel<-0.3?4:2);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game12go(ph) { S.g12_phase=ph; saveState(); renderAll(); }
+function game12reveal() { S.g12_phase='reveal'; saveState(); renderAll(); }
+function game12reset() { delete S.g12_beauty;delete S.g12_talent;delete S.g12_phase;delete S.g12_threshold; saveState(); renderAll(); }
+
+// ═══════════════════════════════════════
+// GAME 13: 收缩魔法
+// ═══════════════════════════════════════
+function renderGame13() {
+  if (!S.g13_phase) { S.g13_phase='bet'; S.g13_d=50; S.g13_has_result=false; saveState(); }
+  let html = topNav(13)+chapterBanner(13);
+  html += `<div class="game-card"><div style="display:flex;gap:20px"><span style="font-size:48px">🪄</span><div><h3 style="color:#9B59B6">收缩魔法</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">老板丢给你一批调查数据：<b>${S.g13_d||50}个城市</b>，每个都做了小样本民调。<br>你的任务不是预测单次结果，而是估计每个城市的<b>真实均值</b>。<br>💬 实习生：<i>"别直接相信样本均值，把它们都往0缩一点，反而更准。"</i></p></div></div></div>`;
+
+  if (S.g13_phase==='bet') {
+    html += '<h3>🤔 你站哪边？</h3><div class="btn-group">';
+    html += '<button class="btn btn-primary" onclick="game13go(\'mle\')">🤬 胡扯！各管各的才最优</button>';
+    html += '<button class="btn btn-secondary" onclick="game13go(\'unsure\')">🤔 说不清，先实验</button>';
+    html += '<button class="btn btn-secondary" onclick="game13go(\'js\')">🪄 说不定真有道理</button></div>';
+  } else if (S.g13_phase==='experiment') {
+    const d=S.g13_d||50;
+    html += `<h3>🔬 收缩实验室</h3><label>同时估计几个参数？ <input type="range" min="1" max="5000" value="${d}" oninput="S.g13_d=parseInt(this.value);saveState();renderAll()"></label> <span style="font-size:18px;font-weight:800;color:#9B59B6">${d}</span>`;
+    html += '<button class="btn btn-primary btn-full" onclick="game13gen()">🎲 随机生成并比较</button>';
+
+    if (S.g13_has_result) {
+      const X=S.g13_X, tru=S.g13_true, js=S.g13_js_vals;
+      const mle=S.g13_mle, jsMse=S.g13_js, shrink=S.g13_shrink||0;
+      html += `<div style="display:flex;gap:12px;margin-top:16px"><div class="metric-card" style="flex:1"><div>🅰️ MLE 的 MSE</div><div class="metric-val" style="color:#FF4757">${mle.toFixed(4)}</div></div><div class="metric-card" style="flex:1"><div>🅱️ JS 的 MSE</div><div class="metric-val" style="color:#00D4AA">${jsMse.toFixed(4)}</div></div><div class="metric-card" style="flex:1"><div>🔧 收缩强度</div><div class="metric-val" style="color:#9B59B6">${shrink.toFixed(4)}</div></div></div>`;
+      html += `<div id="g13-chart"></div>`;
+      if(jsMse<mle) html += `<p style="color:#00D4AA">✅ JS 比 MLE 降低了 ${((1-jsMse/mle)*100).toFixed(1)}% 的误差。</p>`;
+      html += '<button class="btn btn-primary btn-full" onclick="game13reveal()">💡 为什么无关信息反而更准？</button>';
+      setTimeout(()=>{
+        const k=Math.min(20,d);
+        const idxs=Array.from({length:k},(_,i)=>i);
+        Plotly.newPlot('g13-chart',[
+          {x:idxs,y:tru.slice(0,k),mode:'markers+lines',name:'真实值 θ',line:{color:'#00D4AA',width:1},marker:{size:8,color:'#00D4AA'}},
+          {x:idxs,y:X.slice(0,k),mode:'markers',name:'MLE=观测值',marker:{size:9,color:'#8B8F98'}},
+          {x:idxs,y:js.slice(0,k),mode:'markers',name:'JS 收缩后',marker:{size:9,color:'#9B59B6'}}
+        ],{...PLOTLY_DARK,height:340,xaxis:{...PLOTLY_DARK.xaxis,title:'参数编号(前20个)'},yaxis:{...PLOTLY_DARK.yaxis,title:'估计值'}},{displayModeBar:false});
+      },100);
+    }
+  } else if (S.g13_phase==='final_reveal') {
+    const d=S.g13_d, mle=S.g13_mle, jsMse=S.g13_js;
+    html += revealBox('偏差换方差——把无关的东西拉在一起反而更准',`d=${d}时，JS比MLE低了<b>${((1-jsMse/mle)*100).toFixed(1)}%</b>。<br>MLE无偏，但方差大；JS向0收缩，引入一点偏差，却显著降低方差。<br><br><b>MSE = 方差 + 偏差²</b>。当维度够高时，减少的方差远大于引入的偏差。`,'就像你要同时估计5000个人的身高，单独看每个人都会被噪声晃动；但如果你知道"人类身高整体不会离谱到天上去"，把极端值往中间拉一点，反而更准。');
+    html += mathDetail('**MLE**：$$\\hat{\\theta}^{MLE}_i = X_i$$ **James-Stein**($$d\\ge 3$$)：$$\\hat{\\theta}^{JS} = (1-\\frac{d-2}{\\|X\\|^2})X$$ 在高维下JS风险严格低于MLE。');
+    html += '<button class="btn btn-primary btn-full" onclick="game13reset()">🔄 重新实验</button>';
+    completeGame(13); updateRadar('估计智慧',4);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game13go(bet) { S.g13_bet=bet; S.g13_phase='experiment'; saveState(); renderAll(); }
+function game13gen() {
+  const d=S.g13_d||50;
+  const tru=[], X=[];
+  for(let i=0;i<d;i++){tru.push(randn(0,3)); X.push(tru[i]+randn(0,1));}
+  const mleMse=tru.reduce((s,_,i)=>s+(X[i]-tru[i])**2,0)/d;
+  const sumX2=X.reduce((s,v)=>s+v*v,0);
+  const shrink=Math.max(0,1-(d-2)/sumX2);
+  const js=X.map(v=>shrink*v);
+  const jsMse=tru.reduce((s,_,i)=>s+(js[i]-tru[i])**2,0)/d;
+  S.g13_true=tru; S.g13_X=X; S.g13_js_vals=js; S.g13_mle=mleMse; S.g13_js=jsMse; S.g13_shrink=shrink; S.g13_has_result=true;
+  saveState(); renderAll();
+}
+function game13reveal() { S.g13_phase='final_reveal'; saveState(); renderAll(); }
+function game13reset() { delete S.g13_phase;delete S.g13_d;delete S.g13_has_result;delete S.g13_true;delete S.g13_X;delete S.g13_js_vals;delete S.g13_mle;delete S.g13_js;delete S.g13_shrink;delete S.g13_bet; saveState(); renderAll(); }
+
+// ═══════════════════════════════════════
+// GAME 14: 空心球
+// ═══════════════════════════════════════
+function renderGame14() {
+  if (!S.g14_phase) { S.g14_phase='low_dim'; saveState(); }
+  let html = topNav(14)+chapterBanner(14);
+  html += `<div class="game-card"><div style="display:flex;gap:20px"><span style="font-size:48px">🍉</span><div><h3 style="color:#9B59B6">空心球</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">你是游戏开发者。2D地图里，点会自然散落在中心和边缘。<br>但引擎升级到高维后，你发现：<b>点都挤到边界附近，球内部像空心的一样。</b><br>这不是bug——这是高维空间的反直觉本性。</p></div></div></div>`;
+
+  if (S.g14_phase==='low_dim') {
+    html += '<div id="g14-chart1"></div><p style="color:#8B8F98">2维下，变异系数约71%——距离分布很宽，中心附近有很多点。</p>';
+    html += '<h4>🤔 如果升到1000维，你觉得点会去哪？</h4><div class="btn-group">';
+    html += '<button class="btn btn-secondary" onclick="game14go(\'spread\')">还是散在整个球里</button>';
+    html += '<button class="btn btn-secondary" onclick="game14go(\'center\')">会更多集中在中心</button>';
+    html += '<button class="btn btn-primary" onclick="game14go(\'shell\')">会挤到边界附近</button></div>';
+    setTimeout(()=>{
+      const pts2d=[],dists=[];
+      for(let i=0;i<500;i++){const p=[randn(),randn()];pts2d.push(p);dists.push(Math.sqrt(p[0]**2+p[1]**2));}
+      Plotly.newPlot('g14-chart1',[{x:dists,type:'histogram',nbinsx:30,marker:{color:'#00B4D8',opacity:0.7}}],{...PLOTLY_DARK,height:240,xaxis:{...PLOTLY_DARK.xaxis,title:'到原点的距离'},yaxis:{...PLOTLY_DARK.yaxis},title:'2维世界：点会自然散在整个球里'},{displayModeBar:false});
+    },100);
+  } else if (S.g14_phase==='explore') {
+    const d=S.g14_d||50;
+    html += `<label>🎚️ 维度 d <input type="range" min="2" max="1000" value="${d}" oninput="S.g14_d=parseInt(this.value);saveState();renderAll()"></label> <span style="font-size:18px;font-weight:800;color:#9B59B6">${d}</span>`;
+    html += '<button class="btn btn-primary btn-full" onclick="game14gen()">🎲 撒点观测</button>';
+
+    if (S.g14_results && S.g14_results.d===d) {
+      const r=S.g14_results;
+      html += `<h3>📊 图1：距离分布开始收缩</h3><div id="g14-chart2"></div>`;
+      html += `<p>理论≈√${d}=<b>${r.theo.toFixed(1)}</b> | 实际均值=<b>${r.mean.toFixed(2)}</b> | 变异系数=<b>${r.cv.toFixed(1)}%</b></p>`;
+      html += `<p>归一化后，距离/√d 大量集中在 1 附近 → 点都漂浮在半径√d的薄壳上。</p>`;
+      html += `<h4>壳层占比</h4><p>球心附近(&lt;0.90√d)：<b>${r.inner90.toFixed(1)}%</b> | 外层壳(≥0.95√d)：<b>${r.shell95.toFixed(1)}%</b> | 极薄壳(≥0.99√d)：<b>${r.shell99.toFixed(1)}%</b></p>`;
+      html += `<p>📏 最近邻/最远邻比值：<b>${r.ratio.toFixed(3)}</b> ${r.ratio>0.8?'——"附近"这个概念快失效了':''}</p>`;
+      const shell99_1 = (1-Math.pow(0.99,d))*100;
+      html += `<p>🍉 d=${d}时，最外层1%半径的"皮"约占 <b>${shell99_1.toFixed(1)}%</b> 的体积。</p>`;
+      if(r.cv<5||r.shell98>60) html += '<button class="btn btn-primary btn-full" onclick="game14reveal()">💡 我明白了——为什么高维球会变空心？</button>';
+      setTimeout(()=>{
+        Plotly.newPlot('g14-chart2',[{x:r.distances,type:'histogram',nbinsx:50,marker:{color:'#9B59B6',opacity:0.7}}],{...PLOTLY_DARK,height:280,xaxis:{...PLOTLY_DARK.xaxis,title:'到原点距离'},yaxis:{...PLOTLY_DARK.yaxis},shapes:[{type:'line',x0:r.theo,x1:r.theo,y0:0,y1:1,line:{dash:'dash',color:'#F0B90B',width:2},yref:'paper'}]},{displayModeBar:false});
+      },100);
+    }
+  } else if (S.g14_phase==='final_reveal') {
+    const d=S.g14_d, r=S.g14_results;
+    html += revealBox('高维空间——球是空的，点几乎全都漂在壳上',`在d=${d}维时，点到原点的距离几乎都集中在$$\\sqrt{d}\\approx${r.theo.toFixed(1)}$$附近。<br>变异系数只有<b>${r.cv.toFixed(2)}%</b>，有<b>${r.shell98.toFixed(1)}%</b>的点落在最外层98%壳上。<br>最近邻/最远邻比值=<b>${r.ratio.toFixed(3)}</b>——"附近"这个概念都快失效了。`,'这就是为什么高维直觉总会失灵：你以为点会像2D那样散在整个球里，但高维里，"内部"几乎没体积，所有质量都被挤到边界去了。');
+    html += mathDetail('**高斯环现象**：$$X\\sim\\mathcal{N}(0,I_d)$$，则$$\\|X\\|\\approx\\sqrt{d}$$，变异系数→0。**西瓜皮**：皮厚1%半径，体积占比$$1-0.99^d$$，d=1000时接近100%。');
+    html += '<button class="btn btn-primary btn-full" onclick="game14reset()">🔄 重新探索</button>';
+    completeGame(14); updateRadar('维度直觉',4);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game14go(g) { S.g14_guess=g; S.g14_phase='explore'; saveState(); renderAll(); }
+function game14gen() {
+  const d=S.g14_d||50, n=1000;
+  const points=[], distances=[];
+  for(let i=0;i<n;i++){const p=[];let ss=0;for(let j=0;j<d;j++){const v=randn();p.push(v);ss+=v*v;}points.push(p);distances.push(Math.sqrt(ss));}
+  const theo=Math.sqrt(d), mean=distances.reduce((a,b)=>a+b)/n;
+  const cv=Math.sqrt(distances.reduce((s,v)=>s+(v-mean)**2,0)/n)/mean*100;
+  const normalized=distances.map(v=>v/theo);
+  const inner90=normalized.filter(v=>v<0.90).length/n*100;
+  const shell95=normalized.filter(v=>v>=0.95).length/n*100;
+  const shell98=normalized.filter(v=>v>=0.98).length/n*100;
+  const shell99=normalized.filter(v=>v>=0.99).length/n*100;
+  // nearest/farthest neighbor ratio for first 100 points
+  const sample=points.slice(0,100), nn=[], ff=[];
+  for(let i=0;i<sample.length;i++){
+    const ds=[];
+    for(let j=0;j<sample.length;j++){
+      if(i===j)continue;
+      let ss=0;for(let k=0;k<d;k++)ss+=(sample[i][k]-sample[j][k])**2;
+      ds.push(Math.sqrt(ss));
+    }
+    ds.sort((a,b)=>a-b);
+    nn.push(ds[0]); ff.push(ds[ds.length-1]);
+  }
+  const ratio=nn.reduce((a,b)=>a+b)/nn.length/ff.reduce((a,b)=>a+b)*ff.length;
+  S.g14_results={d,distances,theo,mean,cv,normalized,inner90,shell95,shell98,shell99,ratio};
+  S.g14_has_result=true; saveState(); renderAll();
+}
+function game14reveal() { S.g14_phase='final_reveal'; saveState(); renderAll(); }
+function game14reset() { delete S.g14_phase;delete S.g14_d;delete S.g14_guess;delete S.g14_results;delete S.g14_has_result; saveState(); renderAll(); }
+
+// ═══════════════════════════════════════
+// GAME 15: 无法区分的人
+// ═══════════════════════════════════════
+function renderGame15() {
+  if (!S.g15_base2d) {
+    const n=200;
+    const base=[], labels=[];
+    for(let i=0;i<n/2;i++){base.push([randn(-0.5,1),randn(0,1)]);labels.push(0);}
+    for(let i=0;i<n/2;i++){base.push([randn(0.5,1),randn(0,1)]);labels.push(1);}
+    S.g15_base2d=base; S.g15_labels=labels; S.g15_dim=2; S.g15_noise_cache={}; S.g15_phase='struggle';
+    saveState();
+  }
+  const base=S.g15_base2d, labels=S.g15_labels, d=S.g15_dim||2;
+  // Build data with extra dims
+  let data=base;
+  if(d>2){
+    const extra=d-2;
+    if(!S.g15_noise_cache[extra]){
+      const noise=[];
+      for(let i=0;i<base.length;i++){
+        const row=[];
+        for(let j=0;j<extra;j++) row.push(randn(0,1));
+        noise.push(row);
+      }
+      S.g15_noise_cache[extra]=noise;
+    }
+    data=base.map((row,i)=>[...row,...S.g15_noise_cache[extra][i]]);
+  }
+
+  let html = topNav(15)+chapterBanner(15);
+  html += `<div class="game-card"><div style="display:flex;gap:20px"><span style="font-size:48px">👥</span><div><h3 style="color:#9B59B6">无法区分的人</h3><p style="color:#E4E6EB;font-size:15px;line-height:1.7">两个部落的身高体重<b style="color:#FF4757">完全混在一起</b>。<br>💬 导师：<i>"加特征。随便什么都可以。"</i><br>100个垃圾特征堆在一起给出了<b style="color:#F0B90B">99.7%</b>的准确率。</p></div></div></div>`;
+
+  if (S.g15_phase==='struggle') {
+    html += '<div id="g15-chart1"></div>';
+    const acc=simpleClassify(data,labels);
+    html += `<p style="color:#FF4757;font-size:18px">准确率：<b>${acc.toFixed(1)}%</b>——几乎瞎猜。</p>`;
+    html += '<div class="btn-group"><button class="btn btn-primary" onclick="game15go(\'explore\')">➕ 加入随机特征试试</button><button class="btn btn-secondary" onclick="game15go(\'explore\')">这两群人就是一个部落吧</button></div>';
+    setTimeout(()=>{
+      const traces=[];
+      for(const [lbl,color,name] of [[0,'#FF4757','红土族'],[1,'#00B4D8','蓝水族']]){
+        const xs=[], ys=[];
+        for(let i=0;i<data.length;i++){if(labels[i]===lbl){xs.push(data[i][0]);ys.push(data[i][1]);}}
+        traces.push({x:xs,y:ys,mode:'markers',type:'scatter',name,marker:{color,size:8,opacity:0.5}});
+      }
+      Plotly.newPlot('g15-chart1',traces,{...PLOTLY_DARK,height:380,xaxis:{...PLOTLY_DARK.xaxis,title:'身高'},yaxis:{...PLOTLY_DARK.yaxis,title:'体重'},title:'你能画一条线分开他们吗？'},{displayModeBar:false});
+    },100);
+  } else if (S.g15_phase==='explore') {
+    html += `<h3>🔬 当前维度：<b style="color:#9B59B6;font-size:24px">${d}</b></h3>`;
+    html += '<div id="g15-chart2"></div>';
+    const acc=simpleClassify(data,labels);
+    S.g15_acc=acc;
+    html += `<div class="metric-card" style="margin:12px 0"><div>📊 准确率</div><div class="metric-val" style="color:${acc>95?'#00D4AA':acc>80?'#F0B90B':'#FF4757'}">${acc.toFixed(1)}%</div></div>`;
+    if(acc>95) html += '<p style="color:#00D4AA">🚀 近乎完美！</p>';
+    else if(acc>80) html += '<p style="color:#F0B90B">📈 分离趋势明显</p>';
+    else html += '<p style="color:#FF4757">🔍 仍然混在一起</p>';
+    html += '<div class="btn-group">';
+    html += '<button class="btn btn-secondary" onclick="game15addDim(1)">➕1维</button>';
+    html += '<button class="btn btn-secondary" onclick="game15addDim(10)">➕10维</button>';
+    html += '<button class="btn btn-secondary" onclick="game15setDim(50)">🚀50维</button>';
+    html += '<button class="btn btn-secondary" onclick="game15reset()">🔄重来</button></div>';
+    if(d>=30) html += '<button class="btn btn-primary btn-full" onclick="game15phase2(\'reveal\')">💡 为什么垃圾特征堆在一起就能分开了？</button>';
+    setTimeout(()=>{
+      const traces=[];
+      for(const [lbl,color,name] of [[0,'#FF4757','红土族'],[1,'#00B4D8','蓝水族']]){
+        const xs=[], ys=[];
+        for(let i=0;i<data.length;i++){if(labels[i]===lbl){xs.push(data[i][0]);ys.push(data[i][1]);}}
+        traces.push({x:xs,y:ys,mode:'markers',type:'scatter',name,marker:{color,size:7,opacity:0.5}});
+      }
+      Plotly.newPlot('g15-chart2',traces,{...PLOTLY_DARK,height:360,xaxis:{...PLOTLY_DARK.xaxis,title:'身高'},yaxis:{...PLOTLY_DARK.yaxis,title:'体重'}},{displayModeBar:false});
+    },100);
+  } else if (S.g15_phase==='reveal') {
+    html += revealBox('不是算法变聪明了——是空间变大了',`你加了${d-2}个"垃圾特征"——每个区分力≈50%。<br>但${d}个垃圾堆在一起——准确率<b>${S.g15_acc.toFixed(1)}%</b>。<br>高维空间中<b>任意两组随机点几乎一定线性可分</b>。`,'你可能觉得两个人"本质上很像"——只是因为你站在低维里看。加足够多的角度，他们千差万别。');
+    html += mathDetail('**Cover定理** $$N$$个点在$$d$$维空间中随机超平面线性可分的概率随$$d$$增大。当$$d>N$$时几乎一定可分。');
+    html += '<button class="btn btn-primary btn-full" onclick="game15reset()">🔄 重新体验</button>';
+    completeGame(15); updateRadar('维度直觉',4);
+  }
+  document.getElementById('main').innerHTML = html;
+  saveState();
+}
+function game15go(ph) { S.g15_phase=ph; saveState(); renderAll(); }
+function game15phase2(ph) { S.g15_phase=ph; saveState(); renderAll(); }
+function game15addDim(n) { S.g15_dim=(S.g15_dim||2)+n; saveState(); renderAll(); }
+function game15setDim(n) { S.g15_dim=n; saveState(); renderAll(); }
+function game15reset() { delete S.g15_base2d;delete S.g15_labels;delete S.g15_dim;delete S.g15_noise_cache;delete S.g15_phase;delete S.g15_acc; saveState(); renderAll(); }
+
+// ═══════════════════════════════════════
+// ROUTER & INIT
+// ═══════════════════════════════════════
+const GAME_RENDERERS = {
+  '1': renderGame01, '2': renderGame02, '3': renderGame03, '4': renderGame04,
+  '5': renderGame05, '6': renderGame06, '7': renderGame07, '8': renderGame08,
+  '9': renderGame09, '10': renderGame10, '11': renderGame11, '12': renderGame12,
+  '13': renderGame13, '14': renderGame14, '15': renderGame15
+};
+
+function renderAll() { renderMain(); }
+
+// Kick off
+renderAll();
+</script>
+</body>
+</html>
